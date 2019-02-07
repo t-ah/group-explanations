@@ -12,9 +12,9 @@
 +!reach(D) : position(D) <-
   .print("I have reached my destination").
 
-+!reach(D) : position(P) & destination(D) & node(Next) & edge(P, Next)
++!reach(D) : position(P) & destination(D) & node(Next) & edge(P, Next, Traffic)
             & .distance(Next, D, Dis1) & .distance(P, D, Dis2) & Dis1 < Dis2 <-
-  .print("Moving from", P, "to", Next);
+  .print("Moving from", P, "to", Next, "Traffic is", Traffic);
   -+position(Next);
   !reach(D).
 

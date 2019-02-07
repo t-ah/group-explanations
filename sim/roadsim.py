@@ -13,10 +13,10 @@ from random import choice
 env = pyson.runtime.Environment()
 
 graph = nx.Graph()
-graph.add_edges_from([('A','C'), ('A','tl'), ('A','B'),
+graph.add_edges_from([('A','C', {'traffic':'heavy'}), ('A','tl'), ('A','B'),
                       ('B','tl'), ('B','X'),
                       ('C','X'),
-                      ('tl','C'), ('tl','X')])
+                      ('tl','C'), ('tl','X')], traffic='light')
 
 actions = pyson.Actions(pyson.stdlib.actions)
 
@@ -25,13 +25,13 @@ def perceive(self, term, intention):
   beliefs = [pyson.Literal("name", (self.name, ))]
   beliefs.append(pyson.Literal("destination", (destinations[self], )))
   beliefs.append(pyson.Literal("position", (positions[self], )))
-  for node in graph.nodes: 
+  for node in graph.nodes():
     beliefs.append(pyson.Literal("node", (node, )))
-  for edge in graph.edges:
-    beliefs.append(pyson.Literal("edge", (edge[0], edge[1])))
-    beliefs.append(pyson.Literal("edge", (edge[1], edge[0])))
-  for bel in beliefs:
-    self.call(pyson.Trigger.addition, pyson.GoalType.belief, bel, pyson.runtime.Intention())
+  for node1, node2, data in graph.edges(data=True):
+    beliefs.append(pyson.Literal("edge", (node1, node2, data['traffic'])))
+    beliefs.append(pyson.Literal("edge", (node2, node1, data['traffic'])))
+  for belief in beliefs:
+    addBelief(self, belief)
   yield
 
 @actions.add(".distance", 3)
@@ -40,6 +40,9 @@ def distance(self, term, intention):
   n2 = pyson.grounded(term.args[1], intention.scope)
   if pyson.unify(term.args[2], nx.shortest_path_length(graph, n1, n2), intention.scope, intention.stack):
     yield
+
+def addBelief(agent, belief):
+  agent.call(pyson.Trigger.addition, pyson.GoalType.belief, belief, pyson.runtime.Intention())
 
 env = pyson.runtime.Environment()
 
