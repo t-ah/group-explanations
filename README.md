@@ -1,4 +1,4 @@
-# group-explanations
+# Simulation for Group Explanations
 
 Simple agent-based simulation for testing group explanations.
 
