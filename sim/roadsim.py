@@ -10,14 +10,12 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from random import choice
 
+# simulation config
+steps = 1
+agentsPerStep = 1
+initialAgents = 2
+
 env = pyson.runtime.Environment()
-
-graph = nx.Graph()
-graph.add_edges_from([('A','C', {'traffic':'heavy'}), ('A','tl'), ('A','B'),
-                      ('B','tl'), ('B','X'),
-                      ('C','X'),
-                      ('tl','C'), ('tl','X')], traffic='light')
-
 actions = pyson.Actions(pyson.stdlib.actions)
 
 @actions.add(".perceive", 0)
@@ -44,16 +42,46 @@ def distance(self, term, intention):
 def addBelief(agent, belief):
   agent.call(pyson.Trigger.addition, pyson.GoalType.belief, belief, pyson.runtime.Intention())
 
-env = pyson.runtime.Environment()
+def stepSimulation():
+  pass
 
-destinations = {}
-positions = {}
-with open(os.path.join(os.path.dirname(__file__), "car.asl")) as source:
-  agents = env.build_agents(source, 2, actions)
-  nodes = list(graph.nodes())
-  for agent in agents:
-    destinations[agent] = choice(nodes)
-    positions[agent] = choice(nodes)
+def handlePercepts():
+  pass
+
+def createAgents(number):
+  with open(os.path.join(os.path.dirname(__file__), "car.asl")) as source:
+    agents = env.build_agents(source, number, actions)
+    nodes = list(graph.nodes())
+    for agent in agents:
+      beliefs = [pyson.Literal("name", (agent.name, ))]
+      beliefs.append(pyson.Literal("destination", (choice(nodes), )))
+      beliefs.append(pyson.Literal("position", (choice(nodes), )))
+      for node in graph.nodes():
+        beliefs.append(pyson.Literal("node", (node, )))
+      for node1, node2, data in graph.edges(data=True):
+        beliefs.append(pyson.Literal("edge", (node1, node2)))
+        beliefs.append(pyson.Literal("edge", (node2, node1)))
+      for belief in beliefs:
+        addBelief(agent, belief)
+
+graph = nx.Graph()
+graph.add_edges_from([('A','C', {'traffic':'heavy'}), ('A','tl'), ('A','B'),
+                      ('B','tl'), ('B','X'),
+                      ('C','X'),
+                      ('tl','C'), ('tl','X')], traffic='light', weight=1)
+# for later: random graphs
+# graph = nx.fast_gnp_random_graph(20, 0.15, 17)
+# nx.draw(graph)
+# plt.show()
+
+createAgents(initialAgents)
 
 if __name__ == "__main__":
-  env.run()
+  for step in range(steps):
+    print("SIMULATION AT STEP %s") % step
+    stepSimulation()
+    createAgents(agentsPerStep)
+    handlePercepts()
+    env.run()
+  # gather new positions from agents
+  # build a simple schedule

@@ -1,20 +1,15 @@
-!init.
+nextStep(Next) :- position(P) & destination(D) & node(Next) & edge(P, Next) 
+                  & .distance(Next, D, Dis1) & .distance(P, D, Dis2) & Dis1 < Dis2.
 
-+!init <-
-  .perceive;
-  name(N);
-  .print("Hello, I am ", N);
-  destination(D);
-  position(P);
-  .print("My goal is to go from", P, "to", D);
-  !reach(D).
++step : position(Pos) & destination(Dest) & Pos \== Dest <-
+  //-step?
+  !reach(Dest).
 
 +!reach(D) : position(D) <-
   .print("I have reached my destination").
 
-+!reach(D) : position(P) & destination(D) & node(Next) & edge(P, Next, Traffic)
-            & .distance(Next, D, Dis1) & .distance(P, D, Dis2) & Dis1 < Dis2 <-
-  .print("Moving from", P, "to", Next, "Traffic is", Traffic);
++!reach(D) : nextStep(Next) <-
+  .print("Moving to", Next);
   -+position(Next);
   !reach(D).
 
