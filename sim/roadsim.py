@@ -18,20 +18,6 @@ initialAgents = 2
 env = pyson.runtime.Environment()
 actions = pyson.Actions(pyson.stdlib.actions)
 
-@actions.add(".perceive", 0)
-def perceive(self, term, intention):
-  beliefs = [pyson.Literal("name", (self.name, ))]
-  beliefs.append(pyson.Literal("destination", (destinations[self], )))
-  beliefs.append(pyson.Literal("position", (positions[self], )))
-  for node in graph.nodes():
-    beliefs.append(pyson.Literal("node", (node, )))
-  for node1, node2, data in graph.edges(data=True):
-    beliefs.append(pyson.Literal("edge", (node1, node2, data['traffic'])))
-    beliefs.append(pyson.Literal("edge", (node2, node1, data['traffic'])))
-  for belief in beliefs:
-    addBelief(self, belief)
-  yield
-
 @actions.add(".distance", 3)
 def distance(self, term, intention):
   n1 = pyson.grounded(term.args[0], intention.scope)
@@ -83,5 +69,3 @@ if __name__ == "__main__":
     createAgents(agentsPerStep)
     handlePercepts()
     env.run()
-  # gather new positions from agents
-  # build a simple schedule
