@@ -68,4 +68,6 @@ if __name__ == "__main__":
     stepSimulation()
     createAgents(agentsPerStep)
     handlePercepts()
+    for agent in env.agents.values():
+      addBelief(agent, pyson.Literal("step"))
     env.run()
