@@ -1,16 +1,21 @@
-nextStep(Next) :- position(P) & destination(D) & node(Next) & edge(P, Next) 
-                  & .distance(Next, D, Dis1) & .distance(P, D, Dis2) & Dis1 < Dis2.
-
 +step : position(Pos) & destination(Dest) & Pos \== Dest <-
-  //-step?
   !reach(Dest).
 
-+!reach(D) : position(D) <-
++!reach(Dest) : position(Dest) <-
   .print("I have reached my destination").
 
-+!reach(D) : nextStep(Next) <-
-  .print("Moving to", Next);
-  -+position(Next);
-  !reach(D).
++!reach(Dest) : onRoad <-
+  -onRoad;
+  .print("driving");
+  .drive.
 
-+!reach(D) <- .print("I have no idea what to do.").
++!reach(Dest) : atIntersection(Node) <-
+  -atIntersection(_);
+  .nextSteps(Node, Dest, Result); //[road(nr,length),...] sorted by length
+  // TODO decide next road
+  [Shortest|_] = Result;
+  road(NextNode, _) = Shortest;
+  .print("Going to", NextNode);
+  .switchRoad(Node, NextNode).
+
++!reach(Dest) <- .print("I have no idea what to do.").
