@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 import random
 
 # simulation config
-steps = 10
-agentsPerStep = 1
-initialAgents = 2
+steps = 30
+agentsPerStep = 0
+initialAgents = 5
 
 env = pyson.runtime.Environment()
 actions = pyson.Actions(pyson.stdlib.actions)
@@ -39,8 +39,12 @@ def nextSteps(self, term, intention):
 
 @actions.add(".drive", 0)
 def drive(self, term, intention):
-  agentStates[self.name]["roadProgress"] += 1
-  # TODO check if progress complete
+  state = agentStates[self.name]
+  state["roadProgress"] += 1
+  if state["roadProgress"] == G.get_edge_data(*state["road"])["length"]:
+    state["node"] = state["road"][1]
+    state["road"] = None
+    state["roadProgress"] = 0
   yield
 
 @actions.add(".switchRoad", 2)
@@ -54,8 +58,8 @@ def switchRoad(self, term, intention):
   state["roadProgress"] = 0
   yield
 
-def addBelief(agent, belief):
-  agent.call(pyson.Trigger.addition, pyson.GoalType.belief, belief, pyson.runtime.Intention())
+def addBelief(ag, belief):
+  ag.call(pyson.Trigger.addition, pyson.GoalType.belief, belief, pyson.runtime.Intention())
 
 def stepSimulation():
   pass
@@ -92,12 +96,10 @@ def createAgents(number):
       for belief in beliefs:
         addBelief(agent, belief)
 
-G = nx.fast_gnp_random_graph(30, 0.2, 17)
+G = nx.fast_gnp_random_graph(30, 0.2, seed=17, directed=False)
 for (_,_,data) in G.edges(data=True):
-  data["length"] = random.randint(1,4)
+  data["length"] = random.randint(1,3)
   data["quality"] = random.randint(1,3)
-# nx.draw(G)
-# plt.show()
 # TODO assign bridges, roadworks
 
 createAgents(initialAgents)
