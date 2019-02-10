@@ -60,6 +60,13 @@ def switchRoad(self, term, intention):
   state["roadProgress"] = 0
   yield
 
+@actions.add(".bridgeStatus", 2)
+def bridgeStatus(self, term, intention):
+  node = pyson.grounded(term.args[0], intention.scope)
+  result = bridges[node]["open"]
+  if pyson.unify(term.args[1], pyson.Literal("bridge", (result,)), intention.scope, intention.stack):
+    yield
+
 def addBelief(ag, belief):
   ag.call(pyson.Trigger.addition, pyson.GoalType.belief, belief, pyson.runtime.Intention())
 
@@ -113,6 +120,8 @@ def createAgents(G, number):
       for node1, node2, data in G.edges(data=True):
         beliefs.append(pyson.Literal("edge", (node1, node2, data["length"], data["quality"])))
         beliefs.append(pyson.Literal("edge", (node2, node1, data["length"], data["quality"])))
+      for key in bridges:
+        beliefs.append(pyson.Literal("bridge", (key, )))
       for belief in beliefs:
         addBelief(agent, belief)
 
