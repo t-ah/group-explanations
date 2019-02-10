@@ -39,6 +39,14 @@
 +!chooseNextRoad(Pos, Roads) : Roads = [road(NextStop, _)|_] <-
   !goto(Pos, NextStop).
 
+// handle bridges first
++!goto(From, To)
+: bridge(From, To) & .bridgeStatus(From, To, open(false)) & waitForBridges <-
+  .print("I have to wait for the bridge.").
+
++!goto(From, To)
+: bridge(From, To) & .bridgeStatus(From, To, open(false)) <-
+  .print("I would like to make a detour.").
 
 +!goto(CurrentStop, NextStop) <-
   +usedRoad(CurrentStop, NextStop);

@@ -14,7 +14,7 @@ steps = 100
 agentsPerStep = 0
 initialAgents = 5
 numberOfNodes = 30
-numberOfBridges = 6
+pBridge = 0.5
 
 env = pyson.runtime.Environment()
 actions = pyson.Actions(pyson.stdlib.actions)
@@ -60,18 +60,19 @@ def switchRoad(self, term, intention):
   state["roadProgress"] = 0
   yield
 
-@actions.add(".bridgeStatus", 2)
+@actions.add(".bridgeStatus", 3)
 def bridgeStatus(self, term, intention):
-  node = pyson.grounded(term.args[0], intention.scope)
-  result = bridges[node]["open"]
-  if pyson.unify(term.args[1], pyson.Literal("bridge", (result,)), intention.scope, intention.stack):
+  node1 = pyson.grounded(term.args[0], intention.scope)
+  node2 = pyson.grounded(term.args[1], intention.scope)
+  result = G.get_edge_data(node1, node2)["bridge"]["open"]
+  if pyson.unify(term.args[2], pyson.Literal("open", (result,)), intention.scope, intention.stack):
     yield
 
 def addBelief(ag, belief):
   ag.call(pyson.Trigger.addition, pyson.GoalType.belief, belief, pyson.runtime.Intention())
 
 def stepSimulation():
-  for bridge in bridges.values():
+  for bridge in bridges:
     if bridge["open"]:
       if random.random() < bridge["pClose"]:
         bridge["open"] = False
@@ -89,14 +90,20 @@ def handlePercepts():
 
 def setupGraph():
   graph = nx.fast_gnp_random_graph(numberOfNodes, 0.2, seed=17, directed=False)
+  bridges = []
   for (_,_,data) in graph.edges(data=True):
     data["length"] = random.randint(1,3)
     data["quality"] = random.randint(1,3)
-  nodes = list(graph.nodes())
-  bridges = set()
-  for _ in range(1, numberOfBridges):
-    bridges.add(random.choice(nodes))
-  return (list(bridges), graph)
+    if random.random() < pBridge:
+      data["bridge"] = {
+        "open": True,
+        "pOpen": 0.1,
+        "pClose": 0.1
+      }
+      bridges.append(data["bridge"])
+    else:
+      data["bridge"] = False
+  return (bridges, graph)
 
 def createAgents(G, number):
   with open(os.path.join(os.path.dirname(__file__), "car.asl")) as source:
@@ -120,20 +127,14 @@ def createAgents(G, number):
       for node1, node2, data in G.edges(data=True):
         beliefs.append(pyson.Literal("edge", (node1, node2, data["length"], data["quality"])))
         beliefs.append(pyson.Literal("edge", (node2, node1, data["length"], data["quality"])))
-      for key in bridges:
-        beliefs.append(pyson.Literal("bridge", (key, )))
+      for (n1, n2, data) in G.edges(data=True):
+        if data["bridge"]:
+          beliefs.append(pyson.Literal("bridge", (n1, n2)))
+          beliefs.append(pyson.Literal("bridge", (n2, n1)))
       for belief in beliefs:
         addBelief(agent, belief)
 
-bridgeNodes, G = setupGraph()
-bridges = {}
-for n in bridgeNodes:
-  bridges[n] = {
-    "open": True,
-    "pOpen": 0.1,
-    "pClose": 0.1
-  }
-
+bridges, G = setupGraph()
 createAgents(G, initialAgents)
 
 if __name__ == "__main__":
