@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import random
 
 # simulation config
-steps = 30
+steps = 100
 agentsPerStep = 0
 initialAgents = 5
 
@@ -62,6 +62,7 @@ def addBelief(ag, belief):
   ag.call(pyson.Trigger.addition, pyson.GoalType.belief, belief, pyson.runtime.Intention())
 
 def stepSimulation():
+  # handle bridges
   pass
 
 def handlePercepts():
@@ -88,6 +89,7 @@ def createAgents(number):
       agentStates[agent.name] = state
       beliefs.append(pyson.Literal("destination", (state["destination"], )))
       beliefs.append(pyson.Literal("position", (state["node"], )))
+      beliefs.append(pyson.Literal("minRoadQuality", (random.randint(1,3), )))
       for node in G.nodes():
         beliefs.append(pyson.Literal("node", (node, )))
       for node1, node2, data in G.edges(data=True):
@@ -100,7 +102,7 @@ G = nx.fast_gnp_random_graph(30, 0.2, seed=17, directed=False)
 for (_,_,data) in G.edges(data=True):
   data["length"] = random.randint(1,3)
   data["quality"] = random.randint(1,3)
-# TODO assign bridges, roadworks
+# TODO assign bridges
 
 createAgents(initialAgents)
 
