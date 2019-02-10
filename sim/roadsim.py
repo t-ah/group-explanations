@@ -13,6 +13,8 @@ import random
 steps = 100
 agentsPerStep = 0
 initialAgents = 5
+numberOfNodes = 30
+numberOfBridges = 6
 
 env = pyson.runtime.Environment()
 actions = pyson.Actions(pyson.stdlib.actions)
@@ -62,8 +64,13 @@ def addBelief(ag, belief):
   ag.call(pyson.Trigger.addition, pyson.GoalType.belief, belief, pyson.runtime.Intention())
 
 def stepSimulation():
-  # handle bridges
-  pass
+  for bridge in bridges.values():
+    if bridge["open"]:
+      if random.random() < bridge["pClose"]:
+        bridge["open"] = False
+    else:
+      if random.random() < bridge["pOpen"]:
+        bridge["open"] = True
 
 def handlePercepts():
   for agent in env.agents.values():
@@ -73,7 +80,18 @@ def handlePercepts():
     else:
       addBelief(agent, pyson.Literal("atIntersection", (state["node"],)))
 
-def createAgents(number):
+def setupGraph():
+  graph = nx.fast_gnp_random_graph(numberOfNodes, 0.2, seed=17, directed=False)
+  for (_,_,data) in graph.edges(data=True):
+    data["length"] = random.randint(1,3)
+    data["quality"] = random.randint(1,3)
+  nodes = list(graph.nodes())
+  bridges = set()
+  for _ in range(1, numberOfBridges):
+    bridges.add(random.choice(nodes))
+  return (list(bridges), graph)
+
+def createAgents(G, number):
   with open(os.path.join(os.path.dirname(__file__), "car.asl")) as source:
     agents = env.build_agents(source, number, actions)
     nodes = list(G.nodes())
@@ -98,19 +116,22 @@ def createAgents(number):
       for belief in beliefs:
         addBelief(agent, belief)
 
-G = nx.fast_gnp_random_graph(30, 0.2, seed=17, directed=False)
-for (_,_,data) in G.edges(data=True):
-  data["length"] = random.randint(1,3)
-  data["quality"] = random.randint(1,3)
-# TODO assign bridges
+bridgeNodes, G = setupGraph()
+bridges = {}
+for n in bridgeNodes:
+  bridges[n] = {
+    "open": True,
+    "pOpen": 0.1,
+    "pClose": 0.1
+  }
 
-createAgents(initialAgents)
+createAgents(G, initialAgents)
 
 if __name__ == "__main__":
   for step in range(steps):
     print("SIMULATION AT STEP %s") % step
     stepSimulation()
-    createAgents(agentsPerStep)
+    createAgents(G, agentsPerStep)
     handlePercepts()
     for agent in env.agents.values():
       addBelief(agent, pyson.Literal("step"))
