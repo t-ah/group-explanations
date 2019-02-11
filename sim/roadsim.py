@@ -133,9 +133,13 @@ def createAgents(G, number):
         "destination" : random.choice(nodes)
       }
       agentStates[agent.name] = state
+      # generate traits/preferences:
+      beliefs.append(pyson.Literal("minRoadQuality", (random.randint(1,3), )))
+      if random.random() < 0.5:
+        beliefs.append(pyson.Literal("waitForBridges"))
+      # add general beliefs
       beliefs.append(pyson.Literal("destination", (state["destination"], )))
       beliefs.append(pyson.Literal("position", (state["node"], )))
-      beliefs.append(pyson.Literal("minRoadQuality", (random.randint(1,3), )))
       for node in G.nodes():
         beliefs.append(pyson.Literal("node", (node, )))
       for node1, node2, data in G.edges(data=True):

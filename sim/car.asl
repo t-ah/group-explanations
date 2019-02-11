@@ -54,18 +54,17 @@
   .print("I have to wait for the bridge.").
 
 +!goto(To)
-: position(node(Pos)) & bridge(Pos, To) & .bridgeStatus(Pos, To, open(false)) <-
+: position(node(Pos)) & bridge(Pos, To) & .bridgeStatus(Pos, To, open(false)) & not plannedRoute(_) <-
   .print("I would like to make a detour.");
   .getDetour(To, Detour);
-  .print(Detour);
-  !useRoute(Detour).
+  !useDetour(Detour).
 
 +!goto(NextStop) : position(node(CurrentStop)) <-
   +usedRoad(CurrentStop, NextStop);
   .switchRoad(CurrentStop, NextStop).
 
-+!useRoute([]) <- .print("There is no route to use.").
++!useDetour([]) <- .print("There is no route to use.").
 
-+!useRoute(Route) : Route = [Next|More] <-
++!useDetour(Route) : Route = [Next|More] <-
   -+plannedRoute(More);
   !goto(Next).
