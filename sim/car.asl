@@ -7,6 +7,7 @@
   .drive.
 
 +!reach(Dest) : position(node(Node)) & destination(Node) <-
+  .logStep(reached(Node));
   .print("I have reached my destination!");
   -destination(_).
 

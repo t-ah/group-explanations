@@ -87,6 +87,12 @@ def getDetour(self, term, intention):
   if pyson.unify(term.args[1], tuple(path), intention.scope, intention.stack):
     yield
 
+@actions.add(".logStep", 1)
+def logStep(self, term, intention):
+  content = pyson.grounded(term.args[0], intention.scope)
+  traces[self.name].append(content)
+  yield
+
 def addBelief(ag, belief):
   ag.call(pyson.Trigger.addition, pyson.GoalType.belief, belief, pyson.runtime.Intention())
 
@@ -154,6 +160,7 @@ def createAgents(G, number):
 
 bridges, G = setupGraph()
 createAgents(G, initialAgents)
+traces = dict([(key, []) for key in env.agents])
 
 if __name__ == "__main__":
   for step in range(steps):
@@ -164,3 +171,4 @@ if __name__ == "__main__":
     for agent in env.agents.values():
       addBelief(agent, pyson.Literal("step"))
     env.run()
+  print traces
