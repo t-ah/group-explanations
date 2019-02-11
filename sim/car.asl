@@ -1,53 +1,71 @@
 +step : position(Pos) & destination(Dest) & Pos \== Dest <-
+  .getPosition(CurrentPos);
+  -+position(CurrentPos);
   !reach(Dest).
 
-+!reach(Dest) : onRoad <-
-  -onRoad;
++!reach(Dest) : position(road(_)) <-
   .drive.
 
-+!reach(Dest) : atIntersection(Node) & destination(Node) <-
++!reach(Dest) : position(node(Node)) & destination(Node) <-
   .print("I have reached my destination!");
   -destination(_).
 
-+!reach(Dest) : atIntersection(Node) <-
-  -atIntersection(_);
++!reach(Dest) : position(node(Node)) & plannedRoute([NextStop|OtherStops]) <-
+  -+plannedRoute(OtherStops);
+  !goto(NextStop).
+
++plannedRoute([]) <- -plannedRoute(_).
+
++!reach(Dest) : position(node(Node)) <-
   .nextSteps(Node, Dest, Result); //[road(to,length),...] sorted by length
-  !chooseNextRoad(Node, Result).
+  !chooseNextRoad(Result).
 
 +!reach(Dest) <- .print("I have no idea what to do.").
 
 // never take a road twice
-+!chooseNextRoad(Pos, Roads)
-: Roads = [road(To, _)|OtherRoads] & usedRoad(Pos, To) <-
-  !chooseNextRoad(Pos, OtherRoads).
++!chooseNextRoad(Roads)
+: position(node(Pos)) & Roads = [road(To, _)|OtherRoads] & usedRoad(Pos, To) <-
+  !chooseNextRoad(OtherRoads).
 
 // take road quality into account
-+!chooseNextRoad(Pos, Roads) // Roads = [road(To, _)|_]
-: Roads = [road(To, _)|_] & minRoadQuality(Q) & edge(Pos, To, _, EdgeQ) & EdgeQ >= Q <-
-  !goto(Pos, To).
++!chooseNextRoad(Roads) // Roads = [road(To, _)|_]
+: position(node(Pos)) & Roads = [road(To, _)|_] & minRoadQuality(Q) & edge(Pos, To, _, EdgeQ) & EdgeQ >= Q <-
+  !goto(To).
 
 // first element did not satisfy quality criterion
-+!chooseNextRoad(Pos, Roads) : Roads = [_|Other] & minRoadQuality(_) <-
-  !chooseNextRoad(Pos, Other).
++!chooseNextRoad(Roads)
+: position(node(_)) & Roads = [_|Other] & minRoadQuality(_) <-
+  !chooseNextRoad(Other).
 
 // no suitable road, take first alternative
-+!chooseNextRoad(Pos, []) : minRoadQuality(_) & destination(Dest) <-
++!chooseNextRoad([]) 
+: position(node(Pos)) & minRoadQuality(_) & destination(Dest) <-
   .nextSteps(Pos, Dest, [road(To, _)|_]);
-  !goto(Pos, To).
+  !goto(To).
 
 // simplest plan: always choose the "fastest" road
-+!chooseNextRoad(Pos, Roads) : Roads = [road(NextStop, _)|_] <-
-  !goto(Pos, NextStop).
++!chooseNextRoad(Roads) 
+: position(node(_)) & Roads = [road(NextStop, _)|_] <-
+  !goto(NextStop).
 
 // handle bridges first
-+!goto(From, To)
-: bridge(From, To) & .bridgeStatus(From, To, open(false)) & waitForBridges <-
++!goto(To)
+: position(node(Pos)) & bridge(Pos, To) & .bridgeStatus(Pos, To, open(false)) & waitForBridges <-
   .print("I have to wait for the bridge.").
 
-+!goto(From, To)
-: bridge(From, To) & .bridgeStatus(From, To, open(false)) <-
-  .print("I would like to make a detour.").
++!goto(To)
+: position(node(Pos)) & bridge(Pos, To) & .bridgeStatus(Pos, To, open(false)) <-
+  .print("I would like to make a detour.");
+  .getDetour(To, Detour);
+  .print(Detour);
+  !useRoute(Detour).
 
-+!goto(CurrentStop, NextStop) <-
++!goto(NextStop) : position(node(CurrentStop)) <-
   +usedRoad(CurrentStop, NextStop);
   .switchRoad(CurrentStop, NextStop).
+
++!useRoute([]) <- .print("There is no route to use.").
+
++!useRoute(Route) : Route = [Next|More] <-
+  -+plannedRoute(More);
+  !goto(Next).

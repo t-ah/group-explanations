@@ -20,6 +20,13 @@ env = pyson.runtime.Environment()
 actions = pyson.Actions(pyson.stdlib.actions)
 agentStates = {}
 
+@actions.add(".getPosition", 1)
+def getPosition(self, term, intention):
+  state = agentStates[self.name]
+  belief = pyson.Literal("road", (state["road"],)) if state["road"] else pyson.Literal("node", (state["node"],))
+  if pyson.unify(term.args[0], belief, intention.scope, intention.stack):
+    yield
+
 @actions.add(".distance", 3)
 def distance(self, term, intention):
   n1 = pyson.grounded(term.args[0], intention.scope)
@@ -68,6 +75,18 @@ def bridgeStatus(self, term, intention):
   if pyson.unify(term.args[2], pyson.Literal("open", (result,)), intention.scope, intention.stack):
     yield
 
+@actions.add(".getDetour", 2)
+def getDetour(self, term, intention):
+  target = pyson.grounded(term.args[0], intention.scope)
+  position = agentStates[self.name]["node"]
+  edgeData = G.get_edge_data(position, target)
+  length = edgeData["length"]
+  edgeData["length"] = 10000
+  path = nx.shortest_path(G, position, target, "length")[1:]
+  edgeData["length"] = length
+  if pyson.unify(term.args[1], tuple(path), intention.scope, intention.stack):
+    yield
+
 def addBelief(ag, belief):
   ag.call(pyson.Trigger.addition, pyson.GoalType.belief, belief, pyson.runtime.Intention())
 
@@ -81,12 +100,7 @@ def stepSimulation():
         bridge["open"] = True
 
 def handlePercepts():
-  for agent in env.agents.values():
-    state = agentStates[agent.name]
-    if state["road"]:
-      addBelief(agent, pyson.Literal("onRoad"))
-    else:
-      addBelief(agent, pyson.Literal("atIntersection", (state["node"],)))
+  pass
 
 def setupGraph():
   graph = nx.fast_gnp_random_graph(numberOfNodes, 0.2, seed=17, directed=False)
