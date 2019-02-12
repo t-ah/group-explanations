@@ -90,7 +90,7 @@ def getDetour(self, term, intention):
 @actions.add(".logStep", 1)
 def logStep(self, term, intention):
   content = pyson.grounded(term.args[0], intention.scope)
-  traces[self.name].append(content)
+  traces[self.name].append(str(content))
   yield
 
 def addBelief(ag, belief):
@@ -129,7 +129,6 @@ def createAgents(G, number):
   with open(os.path.join(os.path.dirname(__file__), "car.asl")) as source:
     agents = env.build_agents(source, number, actions)
     nodes = list(G.nodes())
-    # TODO give each agent random characteristics/preferences
     for agent in agents:
       beliefs = [pyson.Literal("name", (agent.name, ))]
       state = {
@@ -140,7 +139,8 @@ def createAgents(G, number):
       }
       agentStates[agent.name] = state
       # generate traits/preferences:
-      beliefs.append(pyson.Literal("minRoadQuality", (random.randint(1,3), )))
+      if random.random < 0.8:
+        beliefs.append(pyson.Literal("minRoadQuality", (random.randint(1,3), )))
       if random.random() < 0.5:
         beliefs.append(pyson.Literal("waitForBridges"))
       # add general beliefs
@@ -171,4 +171,5 @@ if __name__ == "__main__":
     for agent in env.agents.values():
       addBelief(agent, pyson.Literal("step"))
     env.run()
-  print traces
+  # for t in traces["car"]: print t
+  # print traces
