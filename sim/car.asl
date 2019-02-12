@@ -26,20 +26,20 @@
 +!reach(Dest) <- .print("I have no idea what to do.").
 
 // never take a road twice
-+!chooseNextRoad(Roads)
-: position(node(Pos)) & Roads = [road(To, _)|OtherRoads] & usedRoad(Pos, To) <-
++!chooseNextRoad([road(To, _)|OtherRoads])
+: position(node(Pos)) & usedRoad(Pos, To) <-
   .logStep(choose(exclude(Pos,To,"used")));
   !chooseNextRoad(OtherRoads).
 
 // take road quality into account
-+!chooseNextRoad(Roads) // Roads = [road(To, _)|_]
-: position(node(Pos)) & Roads = [road(To, _)|_] & minRoadQuality(Q) & edge(Pos, To, _, EdgeQ) & EdgeQ >= Q <-
++!chooseNextRoad([road(To, _)|_]) // Roads = [road(To, _)|_]
+: position(node(Pos)) & minRoadQuality(Q) & edge(Pos, To, _, EdgeQ) & EdgeQ >= Q <-
   .logStep(choose(Pos,To,"unused","acceptQuality"));
   !goto(To).
 
 // first element did not satisfy quality criterion
-+!chooseNextRoad(Roads)
-: position(node(Pos)) & Roads = [First|Other] & minRoadQuality(_) <-
++!chooseNextRoad([First|Other])
+: position(node(Pos)) & minRoadQuality(_) <-
   .logStep(choose(Pos,First,"unused",discard("lowQuality")));
   !chooseNextRoad(Other).
 
@@ -51,8 +51,8 @@
   !goto(To).
 
 // simplest plan: always choose the "fastest" road
-+!chooseNextRoad(Roads) 
-: position(node(Pos)) & Roads = [road(NextStop, _)|_] <-
++!chooseNextRoad([road(NextStop, _)|_])
+: position(node(Pos)) <-
   .logStep(choose(Pos,NextStop,"fastestRoad"));
   !goto(NextStop).
 
