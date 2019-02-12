@@ -15,6 +15,7 @@ agentsPerStep = 0
 initialAgents = 5
 numberOfNodes = 30
 pBridge = 0.5
+random.seed(17)
 
 env = pyson.runtime.Environment()
 actions = pyson.Actions(pyson.stdlib.actions)
@@ -171,5 +172,7 @@ if __name__ == "__main__":
     for agent in env.agents.values():
       addBelief(agent, pyson.Literal("step"))
     env.run()
-  # for t in traces["car"]: print t
+
+  print "\nTrace of agent 'car':"
+  for t in traces["car"]: print t
   # print traces
