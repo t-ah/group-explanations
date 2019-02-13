@@ -208,7 +208,7 @@ if __name__ == "__main__":
     print(t)
   # print(traces)
   pos = nx.spring_layout(G, iterations=1000)
-  nx.draw(G, pos, node_size=800)
+  nx.draw(G, pos, node_size=800, node_color=["green"])
   edgeLabels = {}
   for (x,y,data) in G.edges(data=True):
     label = "l({}) q({})".format(data["length"], data["quality"])
