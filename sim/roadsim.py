@@ -14,7 +14,7 @@ steps = 100
 agentsPerStep = 0
 initialAgents = 5
 numberOfNodes = 30
-pBridge = 0.5
+pBridge = 0.15
 randomSeed = 17
 
 
@@ -181,5 +181,14 @@ if __name__ == "__main__":
   for t in traces["car4"]: 
     print(t)
   # print(traces)
-  nx.draw_spring(G, iterations=500)
+  pos = nx.spring_layout(G, iterations=500)
+  nx.draw(G, pos, node_size=800)
+  edgeLabels = {}
+  for (x,y,data) in G.edges(data=True):
+    if data["bridge"]: edgeLabels[(x,y)] = "bridge"
+  nx.draw_networkx_edge_labels(G, pos, edge_labels=edgeLabels)
+  nodeLabels = {}
+  for node in G:
+    nodeLabels[node] = node
+  nx.draw_networkx_labels(G, pos, nodeLabels)
   plt.show()
