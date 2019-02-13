@@ -61,7 +61,7 @@ def drive(self, term, intention):
 def switchRoad(self, term, intention):
   node = pyson.grounded(term.args[0], intention.scope)
   nextNode = pyson.grounded(term.args[1], intention.scope)
-  print("Agent {} switching from {} to {}".format(self.name, node, nextNode))
+  print("Agent {} using road ({},{})".format(self.name, node, nextNode))
   state = agentStates[self.name]
   state["node"] = None
   state["road"] = (node, nextNode)

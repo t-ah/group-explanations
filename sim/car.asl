@@ -1,3 +1,5 @@
++destination(Dest) <- .print("I want to go to", Dest).
+
 +step : position(Pos) & destination(Dest) & Pos \== Dest <-
   .getPosition(CurrentPos);
   -+position(CurrentPos);
