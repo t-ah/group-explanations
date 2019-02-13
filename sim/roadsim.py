@@ -11,12 +11,15 @@ import random
 import json
 
 # simulation config
-steps = 100
-agentsPerStep = 0
-initialAgents = 5
-numberOfNodes = 30
-pBridge = 0.15
-randomSeed = 17
+simConf = {
+  "steps" : 100,
+  "agentsPerStep" : 0,
+  "initialAgents" : 5,
+  "numberOfNodes" : None, # for gnp graphs
+  "gridDim" : [5,5], # for grid-like graphs
+  "pBridge" : 0.15,
+  "randomSeed" : 17
+}
 
 # setup pyson
 env = pyson.runtime.Environment()
@@ -111,13 +114,15 @@ def handlePercepts():
   pass
 
 def setupGraph():
-  #graph = nx.fast_gnp_random_graph(numberOfNodes, 0.2, seed=randomSeed, directed=False)
-  graph = nx.grid_graph(dim=[5,5])
+  if simConf["numberOfNodes"]:
+    graph = nx.fast_gnp_random_graph(simConf["numberOfNodes"], 0.2, seed=simConf["randomSeed"], directed=False)
+  else:
+    graph = nx.grid_graph(dim=simConf["gridDim"])
   bridges = []
   for (_,_,data) in graph.edges(data=True):
     data["length"] = random.randint(1,3)
     data["quality"] = random.randint(1,3)
-    if random.random() < pBridge:
+    if random.random() < simConf["pBridge"]:
       data["bridge"] = {
         "open": True,
         "pOpen": 0.1,
@@ -163,21 +168,29 @@ def createAgents(G, number):
 
 if __name__ == "__main__":
   # setup simulation
-  random.seed(randomSeed)
+  if len(sys.argv) > 1:
+    configFile = sys.argv[1]
+    with open(configFile) as f:
+      jsonConf = json.load(f)
+      for k in simConf:
+        if k in jsonConf:
+          simConf[k] = jsonConf[k]
+
+  random.seed(simConf["randomSeed"])
   agentStates = {}
   bridges, G = setupGraph()
-  createAgents(G, initialAgents)
+  createAgents(G, simConf["initialAgents"])
   traces = dict([(key, []) for key in env.agents])
 
   # run simulation
-  for step in range(steps):
+  for step in range(simConf["steps"]):
     print("SIMULATION AT STEP {}".format(step))
     stepSimulation()
-    createAgents(G, agentsPerStep)
+    createAgents(G, simConf["agentsPerStep"])
     handlePercepts()
     for agent in env.agents.values():
       addBelief(agent, pyson.Literal("step"))
-    env.run()
+    env.run() # run all agents until there is nothing left to do
 
   # simulation results
   print("\nTrace of agent 'car4':")
