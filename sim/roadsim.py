@@ -208,7 +208,9 @@ if __name__ == "__main__":
   nx.draw(G, pos, node_size=800)
   edgeLabels = {}
   for (x,y,data) in G.edges(data=True):
-    if data["bridge"]: edgeLabels[(x,y)] = "bridge"
+    label = "l({}) q({})".format(data["length"], data["quality"])
+    if data["bridge"]: label += " bridge"
+    edgeLabels[(x,y)] = label
   nx.draw_networkx_edge_labels(G, pos, edge_labels=edgeLabels)
   nodeLabels = {}
   for node in G:
