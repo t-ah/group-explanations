@@ -4,10 +4,11 @@ import pyson
 import pyson.runtime
 import pyson.stdlib
 
-import os
+import os, sys
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
+import json
 
 # simulation config
 steps = 100
@@ -17,12 +18,9 @@ numberOfNodes = 30
 pBridge = 0.15
 randomSeed = 17
 
-
-random.seed(randomSeed)
-
+# setup pyson
 env = pyson.runtime.Environment()
 actions = pyson.Actions(pyson.stdlib.actions)
-agentStates = {}
 
 @actions.add(".getPosition", 1)
 def getPosition(self, term, intention):
@@ -163,11 +161,15 @@ def createAgents(G, number):
       for belief in beliefs:
         addBelief(agent, belief)
 
-bridges, G = setupGraph()
-createAgents(G, initialAgents)
-traces = dict([(key, []) for key in env.agents])
-
 if __name__ == "__main__":
+  # setup simulation
+  random.seed(randomSeed)
+  agentStates = {}
+  bridges, G = setupGraph()
+  createAgents(G, initialAgents)
+  traces = dict([(key, []) for key in env.agents])
+
+  # run simulation
   for step in range(steps):
     print("SIMULATION AT STEP {}".format(step))
     stepSimulation()
@@ -177,6 +179,7 @@ if __name__ == "__main__":
       addBelief(agent, pyson.Literal("step"))
     env.run()
 
+  # simulation results
   print("\nTrace of agent 'car4':")
   for t in traces["car4"]: 
     print(t)
