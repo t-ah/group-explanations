@@ -61,7 +61,7 @@ def drive(self, term, intention):
 def switchRoad(self, term, intention):
   node = pyson.grounded(term.args[0], intention.scope)
   nextNode = pyson.grounded(term.args[1], intention.scope)
-  print("Agent %s switching from %s to %s") % (self.name, node, nextNode)
+  print("Agent {} switching from {} to {}".format(self.name, node, nextNode))
   state = agentStates[self.name]
   state["node"] = None
   state["road"] = (node, nextNode)
@@ -140,7 +140,7 @@ def createAgents(G, number):
       }
       agentStates[agent.name] = state
       # generate traits/preferences:
-      if random.random < 0.8:
+      if random.random() < 0.8:
         beliefs.append(pyson.Literal("minRoadQuality", (random.randint(1,3), )))
       if random.random() < 0.5:
         beliefs.append(pyson.Literal("waitForBridges"))
@@ -165,7 +165,7 @@ traces = dict([(key, []) for key in env.agents])
 
 if __name__ == "__main__":
   for step in range(steps):
-    print("SIMULATION AT STEP %s") % step
+    print("SIMULATION AT STEP {}".format(step))
     stepSimulation()
     createAgents(G, agentsPerStep)
     handlePercepts()
@@ -173,6 +173,6 @@ if __name__ == "__main__":
       addBelief(agent, pyson.Literal("step"))
     env.run()
 
-  print "\nTrace of agent 'car':"
-  for t in traces["car"]: print t
-  # print traces
+  print("\nTrace of agent 'car':")
+  for t in traces["car"]: print(t)
+  # print(traces)
