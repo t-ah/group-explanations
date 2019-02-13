@@ -18,7 +18,9 @@ simConf = {
   "numberOfNodes" : None, # for gnp graphs
   "gridDim" : [5,5], # for grid-like graphs
   "pBridge" : 0.15,
-  "randomSeed" : 17
+  "randomSeed" : 17,
+  "graph" : None,
+  "agents" : None
 }
 
 # setup pyson
@@ -114,23 +116,28 @@ def handlePercepts():
   pass
 
 def setupGraph():
-  if simConf["numberOfNodes"]:
-    graph = nx.fast_gnp_random_graph(simConf["numberOfNodes"], 0.2, seed=simConf["randomSeed"], directed=False)
-  else:
-    graph = nx.grid_graph(dim=simConf["gridDim"])
   bridges = []
-  for (_,_,data) in graph.edges(data=True):
-    data["length"] = random.randint(1,3)
-    data["quality"] = random.randint(1,3)
-    if random.random() < simConf["pBridge"]:
-      data["bridge"] = {
-        "open": True,
-        "pOpen": 0.1,
-        "pClose": 0.1
-      }
-      bridges.append(data["bridge"])
-    else:
-      data["bridge"] = False
+  if simConf.get("graph"):
+    graph = nx.Graph()
+    for edge in simConf["graph"]:
+      graph.add_edge(edge["fromTo"][0], edge["fromTo"][1], length=edge["length"], quality=edge["quality"], bridge=edge["bridge"])
+  else:
+    if simConf.get("numberOfNodes"):
+      graph = nx.fast_gnp_random_graph(simConf["numberOfNodes"], 0.2, seed=simConf["randomSeed"], directed=False)
+    elif simConf.get("gridDim"):
+      graph = nx.grid_graph(dim=simConf["gridDim"])
+    for (_,_,data) in graph.edges(data=True):
+      data["length"] = random.randint(1,3)
+      data["quality"] = random.randint(1,3)
+      if random.random() < simConf["pBridge"]:
+        data["bridge"] = {
+          "open": True,
+          "pOpen": 0.1,
+          "pClose": 0.1
+        }
+        bridges.append(data["bridge"])
+      else:
+        data["bridge"] = False
   return (bridges, graph)
 
 def createAgents(G, number):
