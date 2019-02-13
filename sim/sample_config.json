@@ -15,8 +15,8 @@
     },
     {
       "fromTo" : [1,3],
-      "length" : 2,
-      "quality" : 2,
+      "length" : 1,
+      "quality" : 1,
       "bridge" : null
     },
     {
@@ -48,7 +48,7 @@
       "length" : 1,
       "quality" : 3,
       "bridge" : {
-        "open" : true,
+        "open" : false,
         "pOpen" : 0.2,
         "pClose" : 0.2
       }
@@ -56,11 +56,12 @@
     {
       "fromTo" : [4,5],
       "length" : 5,
-      "quality" : 2,
+      "quality" : 1,
       "bridge" : null
     }
   ],
-  "agents" : [
-
-  ]
+  "agents" : {
+    "positions" : [1],
+    "destinations" : [5]
+  }
 }

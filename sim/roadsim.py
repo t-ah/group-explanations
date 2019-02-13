@@ -121,6 +121,7 @@ def setupGraph():
     graph = nx.Graph()
     for edge in simConf["graph"]:
       graph.add_edge(edge["fromTo"][0], edge["fromTo"][1], length=edge["length"], quality=edge["quality"], bridge=edge["bridge"])
+      if edge.get("bridge"): bridges.append(edge["bridge"])
   else:
     if simConf.get("numberOfNodes"):
       graph = nx.fast_gnp_random_graph(simConf["numberOfNodes"], 0.2, seed=simConf["randomSeed"], directed=False)
@@ -144,13 +145,15 @@ def createAgents(G, number):
   with open(os.path.join(os.path.dirname(__file__), "car.asl")) as source:
     agents = env.build_agents(source, number, actions)
     nodes = list(G.nodes())
+    positions = simConf["agents"]["positions"] if simConf.get("agents") else nodes
+    destinations = simConf["agents"]["destinations"] if simConf.get("agents") else nodes
     for agent in agents:
       beliefs = [pyson.Literal("name", (agent.name, ))]
       state = {
-        "node" : random.choice(nodes),
+        "node" : random.choice(positions),
         "road" : None,
         "roadProgress" : 0,
-        "destination" : random.choice(nodes)
+        "destination" : random.choice(destinations)
       }
       agentStates[agent.name] = state
       # generate traits/preferences:
