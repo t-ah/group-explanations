@@ -1,5 +1,6 @@
 +destination(Dest) <- .print("I want to go to", Dest).
 
+// step percept is added at the beginning of each simulation step
 +step : position(Pos) & destination(Dest) & Pos \== Dest <-
   .getPosition(CurrentPos);
   -+position(CurrentPos);

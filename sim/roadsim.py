@@ -15,7 +15,10 @@ agentsPerStep = 0
 initialAgents = 5
 numberOfNodes = 30
 pBridge = 0.5
-random.seed(17)
+randomSeed = 17
+
+
+random.seed(randomSeed)
 
 env = pyson.runtime.Environment()
 actions = pyson.Actions(pyson.stdlib.actions)
@@ -110,7 +113,8 @@ def handlePercepts():
   pass
 
 def setupGraph():
-  graph = nx.fast_gnp_random_graph(numberOfNodes, 0.2, seed=17, directed=False)
+  #graph = nx.fast_gnp_random_graph(numberOfNodes, 0.2, seed=randomSeed, directed=False)
+  graph = nx.grid_graph(dim=[5,5])
   bridges = []
   for (_,_,data) in graph.edges(data=True):
     data["length"] = random.randint(1,3)
@@ -173,8 +177,9 @@ if __name__ == "__main__":
       addBelief(agent, pyson.Literal("step"))
     env.run()
 
-  print("\nTrace of agent 'car':")
-  for t in traces["car"]: print(t)
+  print("\nTrace of agent 'car4':")
+  for t in traces["car4"]: 
+    print(t)
   # print(traces)
-  nx.draw_networkx(G)
+  nx.draw_spring(G, iterations=500)
   plt.show()
