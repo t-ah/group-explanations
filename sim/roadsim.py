@@ -176,3 +176,5 @@ if __name__ == "__main__":
   print("\nTrace of agent 'car':")
   for t in traces["car"]: print(t)
   # print(traces)
+  nx.draw_networkx(G)
+  plt.show()
