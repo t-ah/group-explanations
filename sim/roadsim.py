@@ -204,7 +204,7 @@ if __name__ == "__main__":
   for t in traces["car4"]: 
     print(t)
   # print(traces)
-  pos = nx.spring_layout(G, iterations=500)
+  pos = nx.spring_layout(G, iterations=1000)
   nx.draw(G, pos, node_size=800)
   edgeLabels = {}
   for (x,y,data) in G.edges(data=True):
