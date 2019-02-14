@@ -27,13 +27,6 @@ simConf = {
 env = pyson.runtime.Environment()
 actions = pyson.Actions(pyson.stdlib.actions)
 
-@actions.add(".getPosition", 1)
-def getPosition(self, term, intention):
-  state = agentStates[self.name]
-  belief = pyson.Literal("road", (state["road"],)) if state["road"] else pyson.Literal("node", (state["node"],))
-  if pyson.unify(term.args[0], belief, intention.scope, intention.stack):
-    yield
-
 @actions.add(".distance", 3)
 def distance(self, term, intention):
   n1 = pyson.grounded(term.args[0], intention.scope)
@@ -165,7 +158,7 @@ def createAgents(G, number):
         beliefs.append(pyson.Literal("waitForBridges"))
       # add general beliefs
       beliefs.append(pyson.Literal("destination", (state["destination"], )))
-      beliefs.append(pyson.Literal("position", (state["node"], )))
+      # beliefs.append(pyson.Literal("position", (state["node"], )))
       for node in G.nodes():
         beliefs.append(pyson.Literal("node", (node, )))
       for node1, node2, data in G.edges(data=True):
@@ -201,6 +194,11 @@ if __name__ == "__main__":
     createAgents(G, simConf["agentsPerStep"])
     handlePercepts()
     for agent in env.agents.values():
+      addBelief(agent, pyson.Literal("beforeStep"))
+      env.run()
+      state = agentStates[agent.name]
+      pos = pyson.Literal("road", (state["road"],)) if state["road"] else pyson.Literal("node", (state["node"],))
+      addBelief(agent, pyson.Literal("position", (pos,)))
       addBelief(agent, pyson.Literal("step"))
     env.run() # run all agents until there is nothing left to do
 

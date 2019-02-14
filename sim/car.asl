@@ -1,9 +1,11 @@
 +destination(Dest) <- .print("I want to go to", Dest).
 
+// is added before step; for cleaning up beliefs etc.
++beforeStep <-
+  -position(_).
+
 // step percept is added at the beginning of each simulation step
 +step : position(Pos) & destination(Dest) & Pos \== Dest <-
-  .getPosition(CurrentPos);
-  -+position(CurrentPos);
   !reach(Dest).
 
 +!reach(Dest) : position(road(_)) <-
