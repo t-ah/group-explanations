@@ -59,6 +59,8 @@
   .logStep(choose(Pos,NextStop,"fastestRoad"));
   !goto(NextStop).
 
++!chooseNextRoad(_) <- .print("I failed to choose a road or I could not take my chosen road.").
+
 // handle bridges first
 +!goto(To)
 : position(node(Pos)) & bridge(Pos, To) & .bridgeStatus(Pos, To, open(false)) & waitForBridges <-
@@ -75,7 +77,7 @@
 +!goto(NextStop) : position(node(CurrentStop)) <-
   .logStep(move(CurrentStop,NextStop));
   +usedRoad(CurrentStop, NextStop);
-  .switchRoad(CurrentStop, NextStop).
+  .takeRoad(CurrentStop, NextStop).
 
 +!useDetour([]) <- .print("There is no route to use.").
 

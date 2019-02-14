@@ -63,10 +63,12 @@ def drive(self, term, intention):
     state["roadProgress"] = 0
   yield
 
-@actions.add(".switchRoad", 2)
-def switchRoad(self, term, intention):
+@actions.add(".takeRoad", 2)
+def takeRoad(self, term, intention):
   node = pyson.grounded(term.args[0], intention.scope)
   nextNode = pyson.grounded(term.args[1], intention.scope)
+  if not G.has_edge(node, nextNode): yield False
+  if G[node][nextNode]["bridge"] and not G[node][nextNode]["bridge"]["open"]: yield False
   print("Agent {} using road ({},{})".format(self.name, node, nextNode))
   state = agentStates[self.name]
   state["node"] = None
