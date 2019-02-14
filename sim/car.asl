@@ -35,7 +35,7 @@
   !chooseNextRoad(OtherRoads).
 
 // take road quality into account
-+!chooseNextRoad([road(To, _)|_]) // Roads = [road(To, _)|_]
++!chooseNextRoad([road(To, _)|_])
 : position(node(Pos)) & minRoadQuality(Q) & edge(Pos, To, _, EdgeQ) & EdgeQ >= Q <-
   .logStep(choose(Pos,To,"unused","acceptQuality"));
   !goto(To).
