@@ -46,16 +46,6 @@ def nextSteps(self, term, intention):
   if pyson.unify(term.args[2], tuple(results), intention.scope, intention.stack):
     yield
 
-@actions.add(".drive", 0)
-def drive(self, term, intention):
-  state = agentStates[self.name]
-  state["roadProgress"] += 1
-  if state["roadProgress"] == G.get_edge_data(*state["road"])["length"]:
-    state["node"] = state["road"][1]
-    state["road"] = None
-    state["roadProgress"] = 0
-  yield
-
 @actions.add(".takeRoad", 2)
 def takeRoad(self, term, intention):
   node = pyson.grounded(term.args[0], intention.scope)
@@ -64,9 +54,7 @@ def takeRoad(self, term, intention):
   if G[node][nextNode]["bridge"] and not G[node][nextNode]["bridge"]["open"]: yield False
   print("Agent {} using road ({},{})".format(self.name, node, nextNode))
   state = agentStates[self.name]
-  state["node"] = None
-  state["road"] = (node, nextNode)
-  state["roadProgress"] = 0
+  state["node"] = nextNode
   yield
 
 @actions.add(".bridgeStatus", 3)
@@ -146,8 +134,6 @@ def createAgents(G, number):
       beliefs = [pyson.Literal("name", (agent.name, ))]
       state = {
         "node" : random.choice(positions),
-        "road" : None,
-        "roadProgress" : 0,
         "destination" : random.choice(destinations)
       }
       agentStates[agent.name] = state
@@ -158,7 +144,6 @@ def createAgents(G, number):
         beliefs.append(pyson.Literal("waitForBridges"))
       # add general beliefs
       beliefs.append(pyson.Literal("destination", (state["destination"], )))
-      # beliefs.append(pyson.Literal("position", (state["node"], )))
       for node in G.nodes():
         beliefs.append(pyson.Literal("node", (node, )))
       for node1, node2, data in G.edges(data=True):
@@ -189,6 +174,8 @@ if __name__ == "__main__":
 
   # run simulation
   for step in range(simConf["steps"]):
+    unfinished = list(filter(lambda x: x["node"] != x["destination"], agentStates.values()))
+    if len(unfinished) == 0: break
     print("SIMULATION AT STEP {}".format(step))
     stepSimulation()
     createAgents(G, simConf["agentsPerStep"])
@@ -197,8 +184,7 @@ if __name__ == "__main__":
       addBelief(agent, pyson.Literal("beforeStep"))
       env.run()
       state = agentStates[agent.name]
-      pos = pyson.Literal("road", (state["road"],)) if state["road"] else pyson.Literal("node", (state["node"],))
-      addBelief(agent, pyson.Literal("position", (pos,)))
+      addBelief(agent, pyson.Literal("position", (state["node"],)))
       addBelief(agent, pyson.Literal("step"))
     env.run() # run all agents until there is nothing left to do
 
