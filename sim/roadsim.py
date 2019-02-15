@@ -56,9 +56,11 @@ def takeRoad(self, term, intention):
   if state["road"] in [(node, nextNode), (nextNode, node)]:
     # stay on road
     state["roadProgress"] += 1
-    if state["roadProgress"] == G.get_edge_data(*state["road"])["length"]:
+    road = state["road"]
+    roadData = G[road[0]][road[1]]
+    if state["roadProgress"] >= roadData["length"] + roadData["traffic"]:
       G[node][nextNode]["traffic"] -= 1
-      state["node"] = state["road"][1]
+      state["node"] = road[1]
       state["road"] = None
       state["roadProgress"] = 0
     yield
