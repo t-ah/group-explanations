@@ -5,8 +5,11 @@
   -position(_).
 
 // step percept is added at the beginning of each simulation step
-+step : position(Pos) & destination(Dest) & Pos \== Dest <-
++step : destination(Dest) <-
   !reach(Dest).
+
++!reach(Dest) : position([N1,N2]) & edge(N1, N2, _, _) <-
+  .takeRoad(N1, N2).
 
 +!reach(Dest) : position(Node) & destination(Node) <-
   .logStep(reached(Node));

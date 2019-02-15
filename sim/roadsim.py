@@ -50,11 +50,24 @@ def nextSteps(self, term, intention):
 def takeRoad(self, term, intention):
   node = pyson.grounded(term.args[0], intention.scope)
   nextNode = pyson.grounded(term.args[1], intention.scope)
-  if not G.has_edge(node, nextNode): yield False
-  if G[node][nextNode]["bridge"] and not G[node][nextNode]["bridge"]["open"]: yield False
-  print("Agent {} using road ({},{})".format(self.name, node, nextNode))
+  if not G.has_edge(node, nextNode):
+    yield False
   state = agentStates[self.name]
-  state["node"] = nextNode
+  if state["road"] in [(node, nextNode), (nextNode, node)]:
+    # stay on road
+    state["roadProgress"] += 1
+    if state["roadProgress"] == G.get_edge_data(*state["road"])["length"]:
+      state["node"] = state["road"][1]
+      state["road"] = None
+      state["roadProgress"] = 0
+    yield
+  # check if road is passable
+  if G[node][nextNode]["bridge"] and not G[node][nextNode]["bridge"]["open"]:
+    yield False
+  print("Agent {} using road ({},{})".format(self.name, node, nextNode))
+  state["node"] = None
+  state["road"] = (node, nextNode)
+  state["roadProgress"] = 0
   yield
 
 @actions.add(".bridgeStatus", 3)
@@ -134,6 +147,8 @@ def createAgents(G, number):
       beliefs = [pyson.Literal("name", (agent.name, ))]
       state = {
         "node" : random.choice(positions),
+        "road" : None,
+        "roadProgress" : 0,
         "destination" : random.choice(destinations)
       }
       agentStates[agent.name] = state
@@ -184,7 +199,8 @@ if __name__ == "__main__":
       addBelief(agent, pyson.Literal("beforeStep"))
       env.run()
       state = agentStates[agent.name]
-      addBelief(agent, pyson.Literal("position", (state["node"],)))
+      pos = state["node"] if state["node"] else state["road"]
+      addBelief(agent, pyson.Literal("position", (pos,)))
       addBelief(agent, pyson.Literal("step"))
     env.run() # run all agents until there is nothing left to do
 
