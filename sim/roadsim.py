@@ -94,6 +94,14 @@ def getDetour(self, term, intention):
   if pyson.unify(term.args[1], tuple(path), intention.scope, intention.stack):
     yield
 
+@actions.add(".getTraffic", 2)
+def getTraffic(self, term, intention):
+  target = pyson.grounded(term.args[0], intention.scope)
+  position = agentStates[self.name]["node"]
+  traffic = G[position][target]["traffic"]
+  if pyson.unify(term.args[1], traffic, intention.scope, intention.stack):
+    yield
+
 @actions.add(".logStep", 1)
 def logStep(self, term, intention):
   content = pyson.grounded(term.args[0], intention.scope)
@@ -158,8 +166,7 @@ def createAgents(G, number):
       }
       agentStates[agent.name] = state
       # generate traits/preferences:
-      if random.random() < 0.8:
-        beliefs.append(pyson.Literal("minRoadQuality", (random.randint(1,3), )))
+      beliefs.append(pyson.Literal("minRoadQuality", (random.randint(0, 3), )))
       if random.random() < 0.5:
         beliefs.append(pyson.Literal("waitForBridges"))
       # add general beliefs
