@@ -207,14 +207,14 @@ if __name__ == "__main__":
     stepSimulation()
     createAgents(G, simConf["agentsPerStep"])
     handlePercepts()
-    for agent in env.agents.values():
+    for agent in sorted(env.agents.values(), key=lambda ag: ag.name):
       addBelief(agent, pyson.Literal("beforeStep"))
-      env.run()
+      env.run_agent(agent)
       state = agentStates[agent.name]
       pos = state["node"] if state["node"] else state["road"]
       addBelief(agent, pyson.Literal("position", (pos,)))
       addBelief(agent, pyson.Literal("step"))
-    env.run() # run all agents until there is nothing left to do
+      env.run_agent(agent)
 
   # simulation results
   print("\nTrace of agent 'car4':")
