@@ -217,8 +217,8 @@ if __name__ == "__main__":
       env.run_agent(agent)
 
   # simulation results
-  print("\nTrace of agent 'car4':")
-  for t in traces["car4"]: 
+  print("\nTrace of agent 'car':")
+  for t in traces["car"]:
     print(t)
   # print(traces)
   pos = nx.spring_layout(G, iterations=1000)

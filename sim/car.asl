@@ -4,7 +4,7 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
 // is added before step; for cleaning up beliefs etc.
 +beforeStep <- -position(_).
 // step percept is added at the beginning of each simulation step
-+step : destination(Dest) <- .print("step"); !reach(Dest).
++step : destination(Dest) <- !reach(Dest).
 
 +!reach(Dest) : position([N1,N2]) & edge(N1, N2, _, _) <-
   .takeRoad(N1, N2).
@@ -74,12 +74,13 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   Roads = [road(R1, L1)|[road(R2, L2)|OtherRoads]];
   .getTraffic(R1, T1);
   .getTraffic(R2, T2);
-  if (L1 + T1 > L2 + T2) { .concat([road(R2, L2)], OtherRoads, BestRoads); }
-  else                   { .concat([road(R1, L1)], OtherRoads, BestRoads); }
+  if (L1 + T1 > L2 + T2) { .concat([road(R2, L2)], OtherRoads, BestRoads); .logStep(explain(checkTraffic(Roads), preferTraffic(R2))); }
+  else                   { .concat([road(R1, L1)], OtherRoads, BestRoads); .logStep(explain(checkTraffic(Roads), preferTraffic(R1))); }
   !checkTraffic(BestRoads).
 
 // handle bridges first
 +!goto(To) : position(Pos) & bridge(Pos, To) & .bridgeStatus(Pos, To, open(false)) & waitForBridges <-
+  .logStep(explain(goto(To), closedBridge, waitForBridges));
   .print("I have to wait for the bridge.").
 +!goto(To) : position(Pos) & bridge(Pos, To) & .bridgeStatus(Pos, To, open(false)) <-
   .logStep(explain(goto(To), closedBridge, notWaitForBridges));
