@@ -5,8 +5,9 @@ import pyson.runtime
 import pyson.stdlib
 
 import os, sys
+import time
 import networkx as nx
-import matplotlib.pyplot as plt
+import pygraphviz as pgv
 import random
 import json
 
@@ -221,16 +222,22 @@ if __name__ == "__main__":
   for t in traces["car"]:
     print(t)
   # print(traces)
-  pos = nx.spring_layout(G, iterations=1000)
-  nx.draw(G, pos, node_size=800, node_color=["green"])
-  edgeLabels = {}
-  for (x,y,data) in G.edges(data=True):
-    label = "l({}) q({})".format(data["length"], data["quality"])
-    if data["bridge"]: label += " bridge"
-    edgeLabels[(x,y)] = label
-  nx.draw_networkx_edge_labels(G, pos, edge_labels=edgeLabels)
-  nodeLabels = {}
-  for node in G:
-    nodeLabels[node] = node
-  nx.draw_networkx_labels(G, pos, nodeLabels)
-  plt.show()
+  # pos = nx.spring_layout(G, iterations=1000)
+  # nx.draw(G, pos, node_size=800, node_color=["green"])
+  # edgeLabels = {}
+  # for (x,y,data) in G.edges(data=True):
+  #   label = "l({}) q({})".format(data["length"], data["quality"])
+  #   if data["bridge"]: label += " bridge"
+  #   edgeLabels[(x,y)] = label
+  # nx.draw_networkx_edge_labels(G, pos, edge_labels=edgeLabels)
+  # nodeLabels = {}
+  # for node in G:
+  #   nodeLabels[node] = node
+  # nx.draw_networkx_labels(G, pos, nodeLabels)
+  # plt.show()
+
+  if not os.path.exists("out"): os.makedirs("out")
+  cTime = time.time()
+  A = nx.nx_agraph.to_agraph(G)
+  A.layout("dot")
+  A.draw(os.path.join("out", "{}.png".format(cTime)))
