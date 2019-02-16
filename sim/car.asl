@@ -1,34 +1,42 @@
+satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & RoadQ >= MinQ.
+
 +destination(Dest) <- .print("I want to go to", Dest).
 // is added before step; for cleaning up beliefs etc.
 +beforeStep <- -position(_).
 // step percept is added at the beginning of each simulation step
-+step : destination(Dest) <- !reach(Dest).
++step : destination(Dest) <- .print("step"); !reach(Dest).
 
 +!reach(Dest) : position([N1,N2]) & edge(N1, N2, _, _) <-
   .takeRoad(N1, N2).
 +!reach(Dest) : position(Node) & destination(Node) <-
+  .logStep(explain(reach(Dest), atDestination(Node)));
   -destination(_).
 +!reach(Dest) : position(Node) & plannedRoute([NextStop|OtherStops]) <-
+  .logStep(explain(reach(Dest), plannedRoute([NextStop|OtherStops]), notAtDestination(Node)));
   -+plannedRoute(OtherStops);
   !goto(NextStop).
 +!reach(Dest) : position(Node) <-
-  .nextSteps(Node, Dest, Result); //[road(to,length),...] sorted by length
-  !chooseNextRoad(Result).
+  .logStep(explain(reach(Dest), notAtDestination, noPlannedRoute));
+  .nextSteps(Node, Dest, Roads); //[road(to,length),...] sorted by length
+  !filterUsed(Roads, []).
 +!reach(Dest) <- .print("I have no idea what to do.").
 
 +plannedRoute([]) <- -plannedRoute(_).
 
-// never take a road twice
-+!chooseNextRoad([road(To, _)|OtherRoads]) : position(Pos) & usedRoad(Pos, To) <-
-  .logStep(choose(exclude(Pos,To,"used")));
-  !chooseNextRoad(OtherRoads).
-// take road quality into account
-+!chooseNextRoad(Roads) : position(Pos) & minRoadQuality(Q) & edge(Pos, To, _, EdgeQ) & EdgeQ >= Q <-
-  !filterByQuality(Roads,[]).
-// simplest plan: always choose the "fastest" road
-+!chooseNextRoad([road(NextStop, _)|_]) : position(Pos) <- 
-  !goto(NextStop).
-+!chooseNextRoad(_) <- .print("I failed to choose a road or I could not take my chosen road.").
+// no road unused, continue with all roads
++!filterUsed([],[]) : position(Pos) & destination(Dest) <-
+  .nextSteps(Pos, Dest, Roads);
+  !filterByQuality(Roads, []).
+// filtering done - some roads remain
++!filterUsed([], Unused) <-
+  !filterByQuality(Unused, []).
+// road has already been used - discard
++!filterUsed([road(To, _)|OtherRoads], Unused) : position(Pos) & usedRoad(Pos, To) <-
+  !filterUsed(OtherRoads, Unused).
+// finding an unused road
++!filterUsed([UnusedRoad|OtherRoads], Unused) <-
+  .concat(Unused, [UnusedRoad], NewUnused);
+  !filterUsed(OtherRoads, NewUnused).
 
 // no road passed quality criterion, continue with all roads
 +!filterByQuality([],[]) : position(Pos) & destination(Dest) <-
@@ -38,14 +46,14 @@
 +!filterByQuality([], GoodRoads) <-
   !checkTraffic(GoodRoads).
 // finding an acceptable road
-+!filterByQuality([road(To, L)|OtherRoads], GoodRoads) : position(Pos) & minRoadQuality(Q) & edge(Pos, To, _, EdgeQ) & EdgeQ >= Q <-
++!filterByQuality([road(To, L)|OtherRoads], GoodRoads) : position(Pos) & satisfiesQuality(Pos, To) <-
   .concat(GoodRoads, [road(To, L)], NewGoodRoads);
   !filterByQuality(OtherRoads, NewGoodRoads).
 // the road can only be unacceptable
 +!filterByQuality([_|OtherRoads], GoodRoads) <-
   !filterByQuality(OtherRoads, GoodRoads).
 
-// only one (left) road to take
+// only one road (left) to take
 +!checkTraffic(Roads) : .length(Roads, 1) <-
   .nth(0, Roads, road(To,_));
   !goto(To).
