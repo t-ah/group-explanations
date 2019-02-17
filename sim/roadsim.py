@@ -105,7 +105,7 @@ def getTraffic(self, term, intention):
   oneProgress = 0.3 + (0.7 / (traffic + 1))
   stepsNeeded = road["length"] / oneProgress
   additionalTime = stepsNeeded - road["length"]
-  if pyson.unify(term.args[1], traffic, intention.scope, intention.stack):
+  if pyson.unify(term.args[1], additionalTime, intention.scope, intention.stack):
     yield
 
 @actions.add(".logStep", 1)
