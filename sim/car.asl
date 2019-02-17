@@ -39,7 +39,7 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
 // finding an unused road
 +!filterUsed([UnusedRoad|OtherRoads], Unused) <-
   position(Pos); UnusedRoad = road(To, _); // only used for explanation
-  .logStep(explain(filterUsed([UnusedRoad|OtherRoads], Unused), notUsedRoad(Pos, To)));
+  // .logStep(explain(filterUsed([UnusedRoad|OtherRoads], Unused), notUsedRoad(Pos, To)));
   .concat(Unused, [UnusedRoad], NewUnused);
   !filterUsed(OtherRoads, NewUnused).
 
@@ -73,8 +73,17 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   Roads = [road(R1, L1)|[road(R2, L2)|OtherRoads]];
   .getTraffic(R1, T1);
   .getTraffic(R2, T2);
-  if (L1 + T1 > L2 + T2) { .concat([road(R2, L2)], OtherRoads, BestRoads); .logStep(explain(checkTraffic(Roads), preferTraffic(R2))); }
-  else                   { .concat([road(R1, L1)], OtherRoads, BestRoads); .logStep(explain(checkTraffic(Roads), preferTraffic(R1))); }
+  if (L1 + T1 > L2 + T2) {
+    .concat([road(R2, L2)], OtherRoads, BestRoads);
+    //.logStep(explain(checkTraffic(Roads), preferTraffic(R2))); 
+  }
+  else                   {
+    .concat([road(R1, L1)], OtherRoads, BestRoads);
+    //.logStep(explain(checkTraffic(Roads), preferTraffic(R1)));
+  }
+  if ((L1>L2) & ((L2+T2)>(L1+T1))) { .logStep(explain(prefer_due_to_traffic(R1,R2,L1,L2,T1,T2))); }
+  if ((L2>L1) & ((L1+T1)>(L2+T2))) { .logStep(explain(prefer_due_to_traffic(R2,R1,L2,L1,T2,T1))); }
+  //.logStep(traffic_compare(R1,R2,L1,L2,T1,T2));
   !checkTraffic(BestRoads).
 
 // handle bridges first
@@ -87,9 +96,11 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   !useDetour(Detour).
 +!goto(To) : position(Pos) & bridge(Pos, To) <-
   .logStep(explain(goto(To), bridgeOpen(Pos, To)));
+  .logStep(action(takeRoad(Pos,To))) ; 
   +usedRoad(Pos, To); .takeRoad(Pos, To).
 +!goto(To) : position(Pos) <-
   .logStep(explain(goto(To), noBridge));
+  .logStep(action(takeRoad(Pos,To))) ; 
   +usedRoad(Pos, To); .takeRoad(Pos, To).
 
 +!useDetour([]) <- .print("There is no route to use.").
