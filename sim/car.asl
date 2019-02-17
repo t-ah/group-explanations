@@ -27,11 +27,11 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
 +!filterUsed([],[]) : position(Pos) & destination(Dest) <-
   .logStep(explain(filterUsed([],[])));
   .nextSteps(Pos, Dest, Roads);
-  !filterByQuality(Roads, []).
+  !filterByQuality(Roads, Roads, []).
 // filtering done - some roads remain
 +!filterUsed([], Unused) <-
   .logStep(explain(filterUsed([], Unused)));
-  !filterByQuality(Unused, []).
+  !filterByQuality(Unused, Unused, []).
 // road has already been used - discard
 +!filterUsed([road(To, L)|OtherRoads], Unused) : position(Pos) & usedRoad(Pos, To) <-
   .logStep(explain(filterUsed([road(To, L)|OtherRoads], Unused), usedRoad(Pos, To)));
@@ -43,25 +43,24 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   .concat(Unused, [UnusedRoad], NewUnused);
   !filterUsed(OtherRoads, NewUnused).
 
-// no road passed quality criterion, continue with all roads
-+!filterByQuality([],[]) : position(Pos) & destination(Dest) <-
+// no road passed quality criterion, continue with all previous roads
++!filterByQuality(Roads, [],[]) : position(Pos) & destination(Dest) <-
   .logStep(explain(filterByQuality([],[])));
-  .nextSteps(Pos, Dest, Roads);
   !checkTraffic(Roads).
 // filtering done - some roads remain
-+!filterByQuality([], GoodRoads) <-
++!filterByQuality(_, [], GoodRoads) <-
   .logStep(explain(filterByQuality([], GoodRoads)));
   !checkTraffic(GoodRoads).
 // finding an acceptable road
-+!filterByQuality([road(To, L)|OtherRoads], GoodRoads) : position(Pos) & satisfiesQuality(Pos, To) <-
++!filterByQuality(PrevRoads, [road(To, L)|OtherRoads], GoodRoads) : position(Pos) & satisfiesQuality(Pos, To) <-
   .logStep(explain(filterByQuality([road(To, L)|OtherRoads], GoodRoads), satisfiesQuality(Pos, To)));
   .concat(GoodRoads, [road(To, L)], NewGoodRoads);
-  !filterByQuality(OtherRoads, NewGoodRoads).
+  !filterByQuality(PrevRoads, OtherRoads, NewGoodRoads).
 // the road can only be unacceptable
-+!filterByQuality([BadRoad|OtherRoads], GoodRoads) <-
++!filterByQuality(PrevRoads, [BadRoad|OtherRoads], GoodRoads) <-
   position(Pos); BadRoad = road(To, _);
   .logStep(explain(filterByQuality([BadRoad|OtherRoads], GoodRoads), notSatisfiesQuality(Pos, To)));
-  !filterByQuality(OtherRoads, GoodRoads).
+  !filterByQuality(PrevRoads, OtherRoads, GoodRoads).
 
 // only one road (left) to take
 +!checkTraffic(Roads) : .length(Roads, 1) <-
