@@ -1,7 +1,7 @@
 {
   "steps" : 100,
   "agentsPerStep" : 0,
-  "initialAgents" : 10,
+  "initialAgents" : 80,
   "pBridge" : 0.15,
   "randomSeed" : 17,
   "numberOfNodes" : null,
@@ -56,7 +56,7 @@
     {
       "fromTo" : [4,5],
       "length" : 5,
-      "quality" : 1,
+      "quality" : 3,
       "bridge" : null
     }
   ],
