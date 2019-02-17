@@ -10,6 +10,7 @@ import networkx as nx
 import pygraphviz as pgv
 import random
 import json
+from collections import Counter, defaultdict
 
 # simulation config
 simConf = {
@@ -58,7 +59,7 @@ def takeRoad(self, term, intention):
     # stay on road
     road = state["road"]
     roadData = G[node][nextNode]
-    state["roadProgress"] += 0.3 + (0.7 / (roadData["traffic"] + 1))
+    state["roadProgress"] += calculateRoadProgress(roadData["traffic"])
     if state["roadProgress"] >= roadData["length"]:
       roadData["traffic"] -= 1
       state["node"] = road[1]
@@ -75,6 +76,9 @@ def takeRoad(self, term, intention):
   state["road"] = (node, nextNode)
   state["roadProgress"] = 0
   yield
+
+def calculateRoadProgress(traffic):
+  return 0.1 + (0.9 / (traffic + 1))
 
 @actions.add(".bridgeStatus", 3)
 def bridgeStatus(self, term, intention):
@@ -101,17 +105,15 @@ def getTraffic(self, term, intention):
   target = pyson.grounded(term.args[0], intention.scope)
   position = agentStates[self.name]["node"]
   road = G[position][target]
-  traffic = road["traffic"]
-  oneProgress = 0.3 + (0.7 / (traffic + 1))
-  stepsNeeded = road["length"] / oneProgress
-  additionalTime = stepsNeeded - road["length"]
-  if pyson.unify(term.args[1], additionalTime, intention.scope, intention.stack):
+  stepsNeeded = road["length"] / calculateRoadProgress(road["traffic"])
+  additionalSteps = stepsNeeded - road["length"]
+  if pyson.unify(term.args[1], additionalSteps, intention.scope, intention.stack):
     yield
 
 @actions.add(".logStep", 1)
 def logStep(self, term, intention):
   content = pyson.grounded(term.args[0], intention.scope)
-  traces[self.name].append(str(content))
+  traces[self.name].append(content)
   yield
 
 def addBelief(ag, belief):
@@ -190,6 +192,24 @@ def createAgents(G, number):
       for belief in beliefs:
         addBelief(agent, belief)
 
+def aggregate(traces):
+  roads = defaultdict(lambda: Counter())
+  for ag in env.agents:
+    factors = set()
+    for t in traces[ag]:
+      if t.functor == "explain":
+        for arg in t.args:
+          factors.add(arg)
+      elif t.functor == "action":
+        actionArgs = t.args[0]
+        road = roads[actionArgs.args[0], actionArgs.args[1]]
+        for factor in factors:
+          road[factor] += 1
+  for road, factors in roads.items():
+    print("Factors for {}:".format(road))
+    for (factor, count) in factors.most_common(10):
+      print("{} times {}".format(count, factor))
+
 if __name__ == "__main__":
   # setup simulation
   if len(sys.argv) > 1:
@@ -224,10 +244,18 @@ if __name__ == "__main__":
       env.run_agent(agent)
 
   # simulation results
-  print("\nTrace of agent 'car':")
-  for t in traces["car"]:
-    print(t)
+  # print("\nTrace of agent 'car':")
+  # for t in traces["car"]:
+  #   print(t)
   # print(traces)
+
+  # print("\nTraces of other cars ... ")
+  # for n in env.agents:
+  #   print("\n\nTrace of agent {}".format(n))
+  #   for t in traces[n]:
+  #     print(t)
+
+  aggregate(traces)
 
   # output image and dot file of graph
   for (x,y,data) in G.edges(data=True):
@@ -238,7 +266,6 @@ if __name__ == "__main__":
   A.node_attr.update(shape="box", color="blue")
   for e in A.edges():
     if e.attr.get("bridge") != "None":
-      #e.attr["penwidth"] = 3
       e.attr["style"] = "dashed,bold"
   A.layout("dot")
 
