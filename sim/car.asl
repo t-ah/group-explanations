@@ -12,11 +12,13 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   .logStep(explain(reach(Dest), atDestination(Node)));
   -destination(_).
 +!reach(Dest) : position(Node) & plannedRoute([NextStop|OtherStops]) <-
-  .logStep(explain(reach(Dest), notAtDestination(Node), plannedRoute([NextStop|OtherStops])));
+  .logStep(explain(reach(Dest), notAtDestination(Node)));
+  .logStep(explain(plannedRoute([NextStop|OtherStops])));
   -+plannedRoute(OtherStops);
   !goto(NextStop).
 +!reach(Dest) : position(Node) <-
-  .logStep(explain(reach(Dest), notAtDestination, noPlannedRoute));
+  .logStep(explain(reach(Dest))); 
+  .logStep(explain(notAtDestination, noPlannedRoute));
   .nextSteps(Node, Dest, Roads); //[road(to,length),...] sorted by length
   !filterUsed(Roads, []).
 +!reach(Dest) <- .print("I have no idea what to do.").
@@ -25,16 +27,17 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
 
 // no road unused, continue with all roads
 +!filterUsed([],[]) : position(Pos) & destination(Dest) <-
-  .logStep(explain(filterUsed([],[])));
+  //.logStep(explain(filterUsed([],[])));
   .nextSteps(Pos, Dest, Roads);
   !filterByQuality(Roads, Roads, []).
 // filtering done - some roads remain
 +!filterUsed([], Unused) <-
-  .logStep(explain(filterUsed([], Unused)));
+  //.logStep(explain(filterUsed([], Unused)));
   !filterByQuality(Unused, Unused, []).
 // road has already been used - discard
 +!filterUsed([road(To, L)|OtherRoads], Unused) : position(Pos) & usedRoad(Pos, To) <-
-  .logStep(explain(filterUsed([road(To, L)|OtherRoads], Unused), usedRoad(Pos, To)));
+  .logStep(explain(filterUsed([road(To, L)|OtherRoads], Unused)));
+  .logStep(explain(usedRoad(Pos, To)));
   !filterUsed(OtherRoads, Unused).
 // finding an unused road
 +!filterUsed([UnusedRoad|OtherRoads], Unused) <-
@@ -45,31 +48,33 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
 
 // no road passed quality criterion, continue with all previous roads
 +!filterByQuality(PrevRoads, [], []) <-
-  .logStep(explain(filterByQuality([], [])));
+  //.logStep(explain(filterByQuality([], [])));
   !checkTraffic(PrevRoads).
 // filtering done - some roads remain
 +!filterByQuality(_, [], GoodRoads) <-
-  .logStep(explain(filterByQuality([], GoodRoads)));
+  //.logStep(explain(filterByQuality([], GoodRoads)));
   !checkTraffic(GoodRoads).
 // finding an acceptable road
 +!filterByQuality(PrevRoads, [road(To, L)|OtherRoads], GoodRoads) : position(Pos) & satisfiesQuality(Pos, To) <-
-  .logStep(explain(filterByQuality([road(To, L)|OtherRoads], GoodRoads), satisfiesQuality(Pos, To)));
+  //.logStep(explain(filterByQuality([road(To, L)|OtherRoads], GoodRoads)));
+  .logStep(explain(satisfiesQuality(Pos, To)));
   .concat(GoodRoads, [road(To, L)], NewGoodRoads);
   !filterByQuality(PrevRoads, OtherRoads, NewGoodRoads).
 // the road can only be unacceptable
 +!filterByQuality(PrevRoads, [BadRoad|OtherRoads], GoodRoads) <-
   position(Pos); BadRoad = road(To, _);
-  .logStep(explain(filterByQuality([BadRoad|OtherRoads], GoodRoads), notSatisfiesQuality(Pos, To)));
+  //.logStep(explain(filterByQuality([BadRoad|OtherRoads], GoodRoads)));
+  .logStep(explain(notSatisfiesQuality(Pos, To)));
   !filterByQuality(PrevRoads, OtherRoads, GoodRoads).
 
 // only one road (left) to take
 +!checkTraffic(Roads) : .length(Roads, 1) <-
-  .logStep(explain(checkTraffic(Roads), oneRoad));
+  //.logStep(explain(checkTraffic(Roads), oneRoad));
   .nth(0, Roads, road(To,_));
   !goto(To).
 // filter roads by traffic (at least two roads)
 +!checkTraffic(Roads) <-
-  .logStep(explain(checkTraffic(Roads), moreThanOneRoad));
+  //.logStep(explain(checkTraffic(Roads), moreThanOneRoad));
   Roads = [road(R1, L1)|[road(R2, L2)|OtherRoads]];
   .getTraffic(R1, T1);
   .getTraffic(R2, T2);
@@ -77,12 +82,18 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
     .concat([road(R2, L2)], OtherRoads, BestRoads);
     //.logStep(explain(checkTraffic(Roads), preferTraffic(R2))); 
   }
-  else                   {
+  else {
     .concat([road(R1, L1)], OtherRoads, BestRoads);
     //.logStep(explain(checkTraffic(Roads), preferTraffic(R1)));
   }
-  if ((L1>L2) & ((L2+T2)>(L1+T1))) { .logStep(explain(prefer_due_to_traffic(R1,R2,L1,L2,T1,T2))); }
-  if ((L2>L1) & ((L1+T1)>(L2+T2))) { .logStep(explain(prefer_due_to_traffic(R2,R1,L2,L1,T2,T1))); }
+  if ((L1>L2) & ((L2+T2)>(L1+T1))) { 
+    //.logStep(explain(prefer_due_to_traffic(R1,R2,L1,L2,T1,T2)));
+    .logStep(explain(prefer_due_to_traffic(R1,R2)));
+  }
+  if ((L2>L1) & ((L1+T1)>(L2+T2))) { 
+    //.logStep(explain(prefer_due_to_traffic(R2,R1,L2,L1,T2,T1)));
+    .logStep(explain(prefer_due_to_traffic(R2,R1)));
+  }
   //.logStep(traffic_compare(R1,R2,L1,L2,T1,T2));
   !checkTraffic(BestRoads).
 
