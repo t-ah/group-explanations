@@ -44,9 +44,9 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   !filterUsed(OtherRoads, NewUnused).
 
 // no road passed quality criterion, continue with all previous roads
-+!filterByQuality(Roads, [],[]) : position(Pos) & destination(Dest) <-
-  .logStep(explain(filterByQuality([],[])));
-  !checkTraffic(Roads).
++!filterByQuality(PrevRoads, [], []) <-
+  .logStep(explain(filterByQuality([], [])));
+  !checkTraffic(PrevRoads).
 // filtering done - some roads remain
 +!filterByQuality(_, [], GoodRoads) <-
   .logStep(explain(filterByQuality([], GoodRoads)));

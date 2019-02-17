@@ -56,11 +56,11 @@ def takeRoad(self, term, intention):
   state = agentStates[self.name]
   if state["road"] in [(node, nextNode), (nextNode, node)]:
     # stay on road
-    state["roadProgress"] += 1
     road = state["road"]
-    roadData = G[road[0]][road[1]]
-    if state["roadProgress"] >= roadData["length"] + roadData["traffic"]:
-      G[node][nextNode]["traffic"] -= 1
+    roadData = G[node][nextNode]
+    state["roadProgress"] += 0.3 + (0.7 / (roadData["traffic"] + 1))
+    if state["roadProgress"] >= roadData["length"]:
+      roadData["traffic"] -= 1
       state["node"] = road[1]
       state["road"] = None
       state["roadProgress"] = 0
@@ -100,7 +100,11 @@ def getDetour(self, term, intention):
 def getTraffic(self, term, intention):
   target = pyson.grounded(term.args[0], intention.scope)
   position = agentStates[self.name]["node"]
-  traffic = G[position][target]["traffic"]
+  road = G[position][target]
+  traffic = road["traffic"]
+  oneProgress = 0.3 + (0.7 / (traffic + 1))
+  stepsNeeded = road["length"] / oneProgress
+  additionalTime = stepsNeeded - road["length"]
   if pyson.unify(term.args[1], traffic, intention.scope, intention.stack):
     yield
 
