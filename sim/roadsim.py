@@ -222,22 +222,19 @@ if __name__ == "__main__":
   for t in traces["car"]:
     print(t)
   # print(traces)
-  # pos = nx.spring_layout(G, iterations=1000)
-  # nx.draw(G, pos, node_size=800, node_color=["green"])
-  # edgeLabels = {}
-  # for (x,y,data) in G.edges(data=True):
-  #   label = "l({}) q({})".format(data["length"], data["quality"])
-  #   if data["bridge"]: label += " bridge"
-  #   edgeLabels[(x,y)] = label
-  # nx.draw_networkx_edge_labels(G, pos, edge_labels=edgeLabels)
-  # nodeLabels = {}
-  # for node in G:
-  #   nodeLabels[node] = node
-  # nx.draw_networkx_labels(G, pos, nodeLabels)
-  # plt.show()
 
+  # output image and dot file of graph
+  for (x,y,data) in G.edges(data=True):
+    data["label"] = "len({}) q({})".format(data["length"], data["quality"])
   if not os.path.exists("out"): os.makedirs("out")
   cTime = time.time()
   A = nx.nx_agraph.to_agraph(G)
+  A.node_attr.update(shape="box", color="blue")
+  for e in A.edges():
+    if e.attr.get("bridge") != "None":
+      #e.attr["penwidth"] = 3
+      e.attr["style"] = "dashed,bold"
   A.layout("dot")
+
   A.draw(os.path.join("out", "{}.png".format(cTime)))
+  nx.nx_agraph.write_dot(G, os.path.join("out", "{}.dot".format(cTime)))
