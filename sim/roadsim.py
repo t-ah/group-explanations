@@ -264,7 +264,7 @@ if __name__ == "__main__":
 
   # output image and dot file of graph
   for (x,y,data) in G.edges(data=True):
-    data["label"] = "len({}),q({}),u({})".format(data["length"], data["quality"], data["used"])
+    data["label"] = "len({}),u({})".format(data["length"], data["used"])
   if not os.path.exists("out"): os.makedirs("out")
   cTime = time.time()
   A = nx.nx_agraph.to_agraph(G)
