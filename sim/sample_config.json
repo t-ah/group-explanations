@@ -49,8 +49,8 @@
       "quality" : 3,
       "bridge" : {
         "open" : false,
-        "pOpen" : 0.2,
-        "pClose" : 0.2
+        "pOpen" : 0.3,
+        "pClose" : 0.6
       }
     },
     {
