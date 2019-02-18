@@ -156,7 +156,7 @@ def setupGraph():
         }
         bridges.append(data["bridge"])
       else:
-        data["bridge"] = False
+        data["bridge"] = None
   return (bridges, graph)
 
 def createAgents(G, number):
