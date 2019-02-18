@@ -113,10 +113,16 @@ def getDetour(self, term, intention):
 def getTraffic(self, term, intention):
   target = pyson.grounded(term.args[0], intention.scope)
   position = agentStates[self.name]["node"]
+  destination = agentStates[self.name]["destination"]
   road = G[position][target]
-  stepsNeeded = road["length"] / calculateRoadProgress(road["traffic"])
-  additionalSteps = stepsNeeded - road["length"]
-  if pyson.unify(term.args[1], additionalSteps, intention.scope, intention.stack):
+
+  resetWeights()
+  for edge in G.edges(position):
+    edgeData = G[edge[0]][edge[1]]
+    # use actual information for all incident roads
+    edgeData["w"] = edgeData["length"] / calculateRoadProgress(edgeData["traffic"])
+  path_length = nx.shortest_path_length(G, target, destination, "w") + road["w"]
+  if pyson.unify(term.args[1], path_length, intention.scope, intention.stack):
     yield
 
 @actions.add(".logStep", 1)

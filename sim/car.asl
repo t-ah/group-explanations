@@ -70,7 +70,7 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   !filterByQuality(PrevRoads, OtherRoads, GoodRoads).
 
 // only one road (left) to take
-+!checkTraffic([road(To, _)]) : position(Pos) <-
++!checkTraffic([road(To, _)]) <-
   //.logStep(explain(prefer_route_with_traffic(Pos, To)));
   !goto(To).
 // filter roads by traffic (at least two roads)
@@ -79,7 +79,7 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   Roads = [road(R1, L1)|[road(R2, L2)|OtherRoads]];
   .getTraffic(R1, T1);
   .getTraffic(R2, T2);
-  if (L1 + T1 > L2 + T2) {
+  if (T1 > T2) {
     .concat([road(R2, L2)], OtherRoads, BestRoads);
     //.logStep(explain(checkTraffic(Roads), preferTraffic(R2))); 
   }
@@ -87,19 +87,19 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
     .concat([road(R1, L1)], OtherRoads, BestRoads);
     //.logStep(explain(checkTraffic(Roads), preferTraffic(R1)));
   }
-  if ((L1>L2) & ((L2+T2)>(L1+T1))) {
+  if ((L1>L2) & (T2>T1)) {
     //.logStep(explain(prefer_due_to_traffic(R1,R2,L1,L2,T1,T2)));
     .logStep(explain(would_prefer_due_to_traffic([Pos,R1],[Pos,R2])));
   }
-  if ((L2>L1) & ((L1+T1)>(L2+T2))) {
+  if ((L2>L1) & (T1>T2)) {
     //.logStep(explain(prefer_due_to_traffic(R2,R1,L2,L1,T2,T1)));
     .logStep(explain(would_prefer_due_to_traffic([Pos,R2],[Pos,R1])));
   }
-  if ((L1>L2) & ((L2+T2)<=(L1+T1))) {
+  if ((L1>L2) & (T2<=T1)) {
     //.logStep(explain(prefer_due_to_traffic(R1,R2,L1,L2,T1,T2)));
     .logStep(explain(would_prefer_due_to_route_length([Pos,R2],[Pos,R1])));
   }
-  if ((L2>L1) & ((L1+T1)<=(L2+T2))) {
+  if ((L2>L1) & (T1<=T2)) {
     //.logStep(explain(prefer_due_to_traffic(R2,R1,L2,L1,T2,T1)));
     .logStep(explain(would_prefer_due_to_route_length([Pos,R1],[Pos,R2])));
   }
