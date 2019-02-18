@@ -101,7 +101,7 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
 +!goto(To) : position(Pos) & bridge(Pos, To) & .bridgeStatus(Pos, To, open(false)) & waitForBridges <-
   .logStep(explain(goto(To), closedBridge, waitForBridges)).
   //.print("I have to wait for the bridge.").
-+!goto(To) : position(Pos) & bridge(Pos, To) & .bridgeStatus(Pos, To, open(false)) <-
++!goto(To) : position(Pos) & bridge(Pos, To) & .bridgeStatus(Pos, To, open(false)) & not plannedRoute(_) <-
   .logStep(explain(goto(To), closedBridge, notWaitForBridges));
   .getDetour(To, Detour);
   !useDetour(Detour).
