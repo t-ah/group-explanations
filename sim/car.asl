@@ -70,9 +70,8 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   !filterByQuality(PrevRoads, OtherRoads, GoodRoads).
 
 // only one road (left) to take
-+!checkTraffic(Roads) : .length(Roads, 1) <-
-  //.logStep(explain(checkTraffic(Roads), oneRoad));
-  .nth(0, Roads, road(To,_));
++!checkTraffic([road(To, _)]) : position(Pos) <-
+  //.logStep(explain(prefer_route_with_traffic(Pos, To)));
   !goto(To).
 // filter roads by traffic (at least two roads)
 +!checkTraffic(Roads) : position(Pos) <-
