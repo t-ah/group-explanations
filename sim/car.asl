@@ -1,3 +1,5 @@
+//path([]).
+
 satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & RoadQ >= MinQ.
 
 +destination(Dest) <- .print("I want to go to", Dest).
@@ -10,6 +12,7 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   .takeRoad(N1, N2).
 +!reach(Dest) : position(Node) & destination(Node) <-
   .logStep(explain(reach(Dest), atDestination(Node)));
+//  path(P); .logStep(note(usedPath(P)));
   -destination(_).
 +!reach(Dest) : position(Node) & plannedRoute([NextStop|OtherStops]) <-
   .logStep(explain(reach(Dest), notAtDestination(Node)));
@@ -116,10 +119,12 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
 +!goto(To) : position(Pos) & bridge(Pos, To) <-
   .logStep(explain(goto(To), bridgeOpen(Pos, To)));
   .logStep(action(takeRoad(Pos,To))); .logStep(explain(tookRoad(Pos, To)));
+//  path(P); .concat(P, [To], NewP); -+path(NewP);
   +usedRoad(Pos, To); .takeRoad(Pos, To).
 +!goto(To) : position(Pos) <-
   .logStep(explain(goto(To), noBridge(Pos, To)));
   .logStep(action(takeRoad(Pos,To))); .logStep(explain(tookRoad(Pos, To)));
+//  path(P); .concat(P, [To], NewP); -+path(NewP);
   +usedRoad(Pos, To); .takeRoad(Pos, To).
 
 +!useDetour([]) <- .print("There is no route to use.").
