@@ -194,18 +194,20 @@ def createAgents(G, number):
 
 def aggregate(traces):
   roads = defaultdict(lambda: Counter())
+  functorFilter = set(["goto"])
   for ag in env.agents:
     factors = set()
     for t in traces[ag]:
       if t.functor == "explain":
         for arg in t.args:
-          factors.add(arg)
+          if arg.functor not in functorFilter:
+            factors.add(arg)
       elif t.functor == "action":
         actionArgs = t.args[0]
         road = roads[actionArgs.args[0], actionArgs.args[1]]
         for factor in factors:
           road[factor] += 1
-        factors = set() # only take factors for one step into account
+        # factors = set() # only take factors for one step into account
   for road, factors in roads.items():
     print("\n\nFactors for {}:".format(road))
     for (factor, count) in factors.most_common(15):
