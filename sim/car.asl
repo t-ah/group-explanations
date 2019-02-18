@@ -73,7 +73,7 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   .nth(0, Roads, road(To,_));
   !goto(To).
 // filter roads by traffic (at least two roads)
-+!checkTraffic(Roads) <-
++!checkTraffic(Roads) : position(Pos) <-
   //.logStep(explain(checkTraffic(Roads), moreThanOneRoad));
   Roads = [road(R1, L1)|[road(R2, L2)|OtherRoads]];
   .getTraffic(R1, T1);
@@ -88,11 +88,11 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   }
   if ((L1>L2) & ((L2+T2)>(L1+T1))) { 
     //.logStep(explain(prefer_due_to_traffic(R1,R2,L1,L2,T1,T2)));
-    .logStep(explain(prefer_due_to_traffic(R1,R2)));
+    .logStep(explain(prefer_due_to_traffic([Pos,R1],[Pos,R2])));
   }
   if ((L2>L1) & ((L1+T1)>(L2+T2))) { 
     //.logStep(explain(prefer_due_to_traffic(R2,R1,L2,L1,T2,T1)));
-    .logStep(explain(prefer_due_to_traffic(R2,R1)));
+    .logStep(explain(prefer_due_to_traffic([Pos,R2],[Pos,R1])));
   }
   //.logStep(traffic_compare(R1,R2,L1,L2,T1,T2));
   !checkTraffic(BestRoads).
