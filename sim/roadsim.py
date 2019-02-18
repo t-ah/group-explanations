@@ -254,11 +254,11 @@ if __name__ == "__main__":
   #   print(t)
   # print(traces)
 
-  # print("\nTraces of other cars ... ")
-  # for n in env.agents:
-  #   print("\n\nTrace of agent {}".format(n))
-  #   for t in traces[n]:
-  #     print(t)
+  print("\nTraces of other cars ... ")
+  for n in env.agents:
+    print("\n\nTrace of agent {}".format(n))
+    for t in traces[n]:
+      print(t)
 
   aggregate(traces)
 
