@@ -42,11 +42,19 @@ def nextSteps(self, term, intention):
   destination = pyson.grounded(term.args[1], intention.scope)
   results = []
   for neighbor in G.neighbors(position):
-    path_length = nx.shortest_path_length(G, neighbor, destination, "length") + G.get_edge_data(position, neighbor)["length"]
+    resetWeights()
+    for edge in G.edges(position):
+      road = G[edge[0]][edge[1]]
+      road["w"] = 1000
+    path_length = nx.shortest_path_length(G, neighbor, destination, "w") + G.get_edge_data(position, neighbor)["length"]
     results.append(pyson.Literal("road", (neighbor, path_length)))
   results.sort(key=lambda x: x.args[1])
   if pyson.unify(term.args[2], tuple(results), intention.scope, intention.stack):
     yield
+
+def resetWeights():
+  for (_,_,data) in G.edges(data=True):
+    data["w"] = data["length"]
 
 @actions.add(".takeRoad", 2)
 def takeRoad(self, term, intention):
