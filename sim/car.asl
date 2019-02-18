@@ -29,11 +29,13 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
 +!filterUsed([],[]) : position(Pos) & destination(Dest) <-
   //.logStep(explain(filterUsed([],[])));
   .nextSteps(Pos, Dest, Roads);
-  !filterByQuality(Roads, Roads, []).
+  //!filterByQuality(Roads, Roads, []).
+  !checkTraffic(Roads).
 // filtering done - some roads remain
 +!filterUsed([], Unused) <-
   //.logStep(explain(filterUsed([], Unused)));
-  !filterByQuality(Unused, Unused, []).
+  //!filterByQuality(Unused, Unused, []).
+  !checkTraffic(Unused).
 // road has already been used - discard
 +!filterUsed([road(To, L)|OtherRoads], Unused) : position(Pos) & usedRoad(Pos, To) <-
   //.logStep(explain(filterUsed([road(To, L)|OtherRoads], Unused)));
