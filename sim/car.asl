@@ -36,7 +36,7 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   !filterByQuality(Unused, Unused, []).
 // road has already been used - discard
 +!filterUsed([road(To, L)|OtherRoads], Unused) : position(Pos) & usedRoad(Pos, To) <-
-  .logStep(explain(filterUsed([road(To, L)|OtherRoads], Unused)));
+  //.logStep(explain(filterUsed([road(To, L)|OtherRoads], Unused)));
   .logStep(explain(usedRoad(Pos, To)));
   !filterUsed(OtherRoads, Unused).
 // finding an unused road

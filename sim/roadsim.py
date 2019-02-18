@@ -205,9 +205,10 @@ def aggregate(traces):
         road = roads[actionArgs.args[0], actionArgs.args[1]]
         for factor in factors:
           road[factor] += 1
+        factors = set() # only take factors for one step into account
   for road, factors in roads.items():
-    print("Factors for {}:".format(road))
-    for (factor, count) in factors.most_common(10):
+    print("\n\nFactors for {}:".format(road))
+    for (factor, count) in factors.most_common(15):
       print("{} times {}".format(count, factor))
 
 if __name__ == "__main__":
@@ -229,7 +230,9 @@ if __name__ == "__main__":
   # run simulation
   for step in range(simConf["steps"]):
     unfinished = list(filter(lambda x: x["node"] != x["destination"], agentStates.values()))
-    if len(unfinished) == 0: break
+    if len(unfinished) == 0:
+      print("SIMULATION FINISHED")
+      break
     print("SIMULATION AT STEP {}".format(step))
     stepSimulation()
     createAgents(G, simConf["agentsPerStep"])
