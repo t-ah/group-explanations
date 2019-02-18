@@ -116,11 +116,11 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   !useDetour(Detour).
 +!goto(To) : position(Pos) & bridge(Pos, To) <-
   .logStep(explain(goto(To), bridgeOpen(Pos, To)));
-  .logStep(action(takeRoad(Pos,To))) ; 
+  .logStep(action(takeRoad(Pos,To))); .logStep(explain(tookRoad(Pos, To)));
   +usedRoad(Pos, To); .takeRoad(Pos, To).
 +!goto(To) : position(Pos) <-
   .logStep(explain(goto(To), noBridge(Pos, To)));
-  .logStep(action(takeRoad(Pos,To))) ; 
+  .logStep(action(takeRoad(Pos,To))); .logStep(explain(tookRoad(Pos, To)));
   +usedRoad(Pos, To); .takeRoad(Pos, To).
 
 +!useDetour([]) <- .print("There is no route to use.").
