@@ -79,7 +79,8 @@ def takeRoad(self, term, intention):
   yield
 
 def calculateRoadProgress(traffic):
-  return 0.1 + (0.9 / (traffic + 1))
+  minProgress = 0.2
+  return minProgress + ((1 - minProgress) / (traffic + 1))
 
 @actions.add(".bridgeStatus", 3)
 def bridgeStatus(self, term, intention):
