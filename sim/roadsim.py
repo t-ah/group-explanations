@@ -71,7 +71,6 @@ def takeRoad(self, term, intention):
     yield False
   print("Agent {} using road ({},{})".format(self.name, node, nextNode))
   G[node][nextNode]["traffic"] += 1
-  G[node][nextNode]["used"] += 1
   roadUsedCounter[(str(node), str(nextNode))] += 1
   state["node"] = None
   state["road"] = (node, nextNode)
@@ -138,7 +137,7 @@ def setupGraph():
   if simConf.get("graph"):
     graph = nx.Graph()
     for edge in simConf["graph"]:
-      graph.add_edge(edge["fromTo"][0], edge["fromTo"][1], length=edge["length"], quality=edge["quality"], bridge=edge["bridge"], traffic=0, used=0)
+      graph.add_edge(edge["fromTo"][0], edge["fromTo"][1], length=edge["length"], quality=edge["quality"], bridge=edge["bridge"], traffic=0)
       if edge.get("bridge"): bridges.append(edge["bridge"])
   else:
     if simConf.get("numberOfNodes"):
@@ -149,7 +148,6 @@ def setupGraph():
       data["length"] = random.randint(1,3)
       data["quality"] = random.randint(1,3)
       data["traffic"] = 0
-      data["used"] = 0
       if random.random() < simConf["pBridge"]:
         data["bridge"] = {
           "open": True,
