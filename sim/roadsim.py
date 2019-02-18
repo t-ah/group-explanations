@@ -212,7 +212,7 @@ def aggregate(traces):
         # factors = set() # only take factors for one step into account
   for road, factors in roads.items():
     print("\n\nFactors for {}:".format(road))
-    for (factor, count) in factors.most_common(15):
+    for (factor, count) in factors.most_common():
       print("{} times {}".format(count, factor))
 
 if __name__ == "__main__":
