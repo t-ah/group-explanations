@@ -72,6 +72,7 @@ def takeRoad(self, term, intention):
   print("Agent {} using road ({},{})".format(self.name, node, nextNode))
   G[node][nextNode]["traffic"] += 1
   G[node][nextNode]["used"] += 1
+  roadUsedCounter[(str(node), str(nextNode))] += 1
   state["node"] = None
   state["road"] = (node, nextNode)
   state["roadProgress"] = 0
@@ -228,6 +229,7 @@ if __name__ == "__main__":
   bridges, G = setupGraph()
   createAgents(G, simConf["initialAgents"])
   traces = dict([(key, []) for key in env.agents])
+  roadUsedCounter = Counter()
 
   # run simulation
   for step in range(simConf["steps"]):
@@ -264,15 +266,23 @@ if __name__ == "__main__":
 
   # output image and dot file of graph
   for (x,y,data) in G.edges(data=True):
-    data["label"] = "len({}),u({})".format(data["length"], data["used"])
+    data["label"] = "len({})".format(data["length"])
   if not os.path.exists("out"): os.makedirs("out")
   cTime = time.time()
   A = nx.nx_agraph.to_agraph(G)
+  duplEdges = A.edges()
+  A = A.to_directed()
+  removeEdges = [e for e in A.edges() if e not in duplEdges]
+  for edge in removeEdges:
+    A.remove_edge(edge)
+  A.graph_attr.update(nodesep=1)
   A.node_attr.update(shape="box", color="blue")
+  A.edge_attr.update(dir="none", labeldistance=1.5)
   for e in A.edges():
     if e.attr.get("bridge") != "None":
       e.attr["style"] = "dashed,bold"
+    e.attr["taillabel"] = roadUsedCounter[e]
+    e.attr["headlabel"] = roadUsedCounter[(e[1], e[0])]
   A.layout("dot")
-
   A.draw(os.path.join("out", "{}.png".format(cTime)))
   nx.nx_agraph.write_dot(G, os.path.join("out", "{}.dot".format(cTime)))
