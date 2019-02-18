@@ -89,11 +89,11 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   }
   if ((L1>L2) & ((L2+T2)>(L1+T1))) { 
     //.logStep(explain(prefer_due_to_traffic(R1,R2,L1,L2,T1,T2)));
-    .logStep(explain(prefer_due_to_traffic([Pos,R1],[Pos,R2])));
+    .logStep(explain(would_prefer_due_to_traffic([Pos,R1],[Pos,R2])));
   }
   if ((L2>L1) & ((L1+T1)>(L2+T2))) { 
     //.logStep(explain(prefer_due_to_traffic(R2,R1,L2,L1,T2,T1)));
-    .logStep(explain(prefer_due_to_traffic([Pos,R2],[Pos,R1])));
+    .logStep(explain(would_prefer_due_to_traffic([Pos,R2],[Pos,R1])));
   }
   //.logStep(traffic_compare(R1,R2,L1,L2,T1,T2));
   !checkTraffic(BestRoads).
