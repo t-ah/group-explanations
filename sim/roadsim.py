@@ -71,6 +71,7 @@ def takeRoad(self, term, intention):
     if state["roadProgress"] >= roadData["length"]:
       roadData["traffic"] -= 1
       state["node"] = road[1]
+      state["path"].append(road[1])
       state["road"] = None
       state["roadProgress"] = 0
     yield
@@ -115,12 +116,15 @@ def getTraffic(self, term, intention):
   position = agentStates[self.name]["node"]
   destination = agentStates[self.name]["destination"]
   road = G[position][target]
-
+  state = agentStates[self.name]
   resetWeights()
   for edge in G.edges(position):
     edgeData = G[edge[0]][edge[1]]
-    # use actual information for all incident roads
-    edgeData["w"] = edgeData["length"] / calculateRoadProgress(edgeData["traffic"])
+    # update information for all incident roads
+    state["traffic"][edge] = edgeData["length"] / calculateRoadProgress(edgeData["traffic"])
+  for edge, w in state["traffic"].items():
+    # use agent's known traffic info
+    G[edge[0]][edge[1]]["w"] = w
   path_length = nx.shortest_path_length(G, target, destination, "w") + road["w"]
   if pyson.unify(term.args[1], path_length, intention.scope, intention.stack):
     yield
@@ -185,8 +189,10 @@ def createAgents(G, number):
         "node" : random.choice(positions),
         "road" : None,
         "roadProgress" : 0,
-        "destination" : random.choice(destinations)
+        "destination" : random.choice(destinations),
+        "traffic" : {}
       }
+      state["path"] = [state["node"]]
       agentStates[agent.name] = state
       # generate traits/preferences:
       beliefs.append(pyson.Literal("minRoadQuality", (random.randint(0, 3), )))
@@ -276,6 +282,9 @@ if __name__ == "__main__":
       print(t)
 
   aggregate(traces)
+
+  for n in env.agents:
+    print("{} used path {}".format(n, agentStates[n]["path"]))
 
   # output image and dot file of graph
   for (x,y,data) in G.edges(data=True):
