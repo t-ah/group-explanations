@@ -1,5 +1,3 @@
-//path([]).
-
 satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & RoadQ >= MinQ.
 
 +destination(Dest) <- .print("I want to go to", Dest).
@@ -12,7 +10,6 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   .takeRoad(N1, N2).
 +!reach(Dest) : position(Node) & destination(Node) <-
   .logStep(explain(reach(Dest), atDestination(Node)));
-//  path(P); .logStep(note(usedPath(P)));
   -destination(_).
 +!reach(Dest) : position(Node) & plannedRoute([NextStop|OtherStops]) <-
   .logStep(explain(reach(Dest), notAtDestination(Node)));
@@ -30,101 +27,64 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
 
 // no road unused, continue with all roads
 +!filterUsed([],[]) : position(Pos) & destination(Dest) <-
-  //.logStep(explain(filterUsed([],[])));
   .nextSteps(Pos, Dest, Roads);
   //!filterByQuality(Roads, Roads, []).
   !checkTraffic(Roads).
 // filtering done - some roads remain
 +!filterUsed([], Unused) <-
-  //.logStep(explain(filterUsed([], Unused)));
   //!filterByQuality(Unused, Unused, []).
   !checkTraffic(Unused).
 // road has already been used - discard
 +!filterUsed([road(To, L)|OtherRoads], Unused) : position(Pos) & usedRoad(Pos, To) <-
-  //.logStep(explain(filterUsed([road(To, L)|OtherRoads], Unused)));
   .logStep(explain(usedRoad(Pos, To)));
   !filterUsed(OtherRoads, Unused).
 // finding an unused road
 +!filterUsed([UnusedRoad|OtherRoads], Unused) <-
   position(Pos); UnusedRoad = road(To, _); // only used for explanation
-  // .logStep(explain(filterUsed([UnusedRoad|OtherRoads], Unused), notUsedRoad(Pos, To)));
   .concat(Unused, [UnusedRoad], NewUnused);
   !filterUsed(OtherRoads, NewUnused).
 
-// no road passed quality criterion, continue with all previous roads
-+!filterByQuality(PrevRoads, [], []) <-
-  //.logStep(explain(filterByQuality([], [])));
-  !checkTraffic(PrevRoads).
-// filtering done - some roads remain
-+!filterByQuality(_, [], GoodRoads) <-
-  //.logStep(explain(filterByQuality([], GoodRoads)));
-  !checkTraffic(GoodRoads).
-// finding an acceptable road
-+!filterByQuality(PrevRoads, [road(To, L)|OtherRoads], GoodRoads) : position(Pos) & satisfiesQuality(Pos, To) <-
-  //.logStep(explain(filterByQuality([road(To, L)|OtherRoads], GoodRoads)));
-  .logStep(explain(satisfiesQuality(Pos, To)));
-  .concat(GoodRoads, [road(To, L)], NewGoodRoads);
-  !filterByQuality(PrevRoads, OtherRoads, NewGoodRoads).
-// the road can only be unacceptable
-+!filterByQuality(PrevRoads, [BadRoad|OtherRoads], GoodRoads) <-
-  position(Pos); BadRoad = road(To, _);
-  //.logStep(explain(filterByQuality([BadRoad|OtherRoads], GoodRoads)));
-  .logStep(explain(notSatisfiesQuality(Pos, To)));
-  !filterByQuality(PrevRoads, OtherRoads, GoodRoads).
-
 // only one road (left) to take
 +!checkTraffic([road(To, _)]) <-
-  //.logStep(explain(prefer_route_with_traffic(Pos, To)));
   !goto(To).
 // filter roads by traffic (at least two roads)
 +!checkTraffic(Roads) : position(Pos) <-
-  //.logStep(explain(checkTraffic(Roads), moreThanOneRoad));
   Roads = [road(R1, L1)|[road(R2, L2)|OtherRoads]];
   .getTraffic(R1, T1);
   .getTraffic(R2, T2);
   if (T1 > T2) {
     .concat([road(R2, L2)], OtherRoads, BestRoads);
-    //.logStep(explain(checkTraffic(Roads), preferTraffic(R2))); 
   }
   else {
     .concat([road(R1, L1)], OtherRoads, BestRoads);
-    //.logStep(explain(checkTraffic(Roads), preferTraffic(R1)));
   }
   if ((L1>L2) & (T2>T1)) {
-    //.logStep(explain(prefer_due_to_traffic(R1,R2,L1,L2,T1,T2)));
     .logStep(explain(would_prefer_due_to_traffic([Pos,R1],[Pos,R2])));
   }
   if ((L2>L1) & (T1>T2)) {
-    //.logStep(explain(prefer_due_to_traffic(R2,R1,L2,L1,T2,T1)));
     .logStep(explain(would_prefer_due_to_traffic([Pos,R2],[Pos,R1])));
   }
   if ((L1>L2) & (T2<=T1)) {
-    //.logStep(explain(prefer_due_to_traffic(R1,R2,L1,L2,T1,T2)));
     .logStep(explain(would_prefer_due_to_route_length([Pos,R2],[Pos,R1])));
   }
   if ((L2>L1) & (T1<=T2)) {
-    //.logStep(explain(prefer_due_to_traffic(R2,R1,L2,L1,T2,T1)));
     .logStep(explain(would_prefer_due_to_route_length([Pos,R1],[Pos,R2])));
   }
-  //.logStep(traffic_compare(R1,R2,L1,L2,T1,T2));
   !checkTraffic(BestRoads).
 
 // handle bridges first
 +!goto(To) : position(Pos) & bridge(Pos, To) & .bridgeStatus(Pos, To, open(false)) & waitForBridges <-
   .logStep(explain(goto(To), waitForClosedBridge(Pos, To))).
-  //.print("I have to wait for the bridge.").
 +!goto(To) : position(Pos) & bridge(Pos, To) & .bridgeStatus(Pos, To, open(false)) & not plannedRoute(_) <-
   .logStep(explain(goto(To), notWaitForClosedBridge(Pos, To)));
   !useDetour(To).
 +!goto(To) : position(Pos) & bridge(Pos, To) <-
   .logStep(explain(goto(To), bridgeOpen(Pos, To)));
   .logStep(action(takeRoad(Pos,To))); .logStep(explain(tookRoad(Pos, To)));
-//  path(P); .concat(P, [To], NewP); -+path(NewP);
   +usedRoad(Pos, To); .takeRoad(Pos, To).
 +!goto(To) : position(Pos) <-
   .logStep(explain(goto(To), noBridge(Pos, To)));
   .logStep(action(takeRoad(Pos,To))); .logStep(explain(tookRoad(Pos, To)));
-//  path(P); .concat(P, [To], NewP); -+path(NewP);
   +usedRoad(Pos, To); .takeRoad(Pos, To).
 
 +!useDetour([]) <- .print("There is no route to use.").
