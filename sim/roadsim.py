@@ -265,7 +265,7 @@ if __name__ == "__main__":
       addBelief(agent, pyson.Literal("beforeStep"))
       env.run_agent(agent)
       state = agentStates[agent.name]
-      pos = state["node"] if state["node"] else state["road"]
+      pos = state["node"] if state["node"] != None else state["road"]
       addBelief(agent, pyson.Literal("position", (pos,)))
       addBelief(agent, pyson.Literal("step"))
       env.run_agent(agent)
