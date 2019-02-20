@@ -67,9 +67,9 @@ def takeRoad(self, term, intention):
     # stay on road
     road = state["road"]
     roadData = G[node][nextNode]
-    state["roadProgress"] += calculateRoadProgress(roadData["traffic"])
+    state["roadProgress"] += calculateRoadProgress(trafficData[(node, nextNode)])
     if state["roadProgress"] >= roadData["length"]:
-      roadData["traffic"] -= 1
+      trafficData[(node, nextNode)] -= 1
       state["node"] = road[1]
       state["path"].append(road[1])
       state["road"] = None
@@ -79,7 +79,7 @@ def takeRoad(self, term, intention):
   if G[node][nextNode]["bridge"] and not G[node][nextNode]["bridge"]["open"]:
     yield False
   print("Agent {} using road ({},{})".format(self.name, node, nextNode))
-  G[node][nextNode]["traffic"] += 1
+  trafficData[(node, nextNode)] += 1
   roadUsedCounter[(str(node), str(nextNode))] += 1
   state["node"] = None
   state["road"] = (node, nextNode)
@@ -121,7 +121,7 @@ def getTraffic(self, term, intention):
   for edge in G.edges(position):
     edgeData = G[edge[0]][edge[1]]
     # update information for all incident roads
-    state["traffic"][edge] = edgeData["length"] / calculateRoadProgress(edgeData["traffic"])
+    state["traffic"][edge] = edgeData["length"] / calculateRoadProgress(trafficData[(position, edge[1])])
   for edge, w in state["traffic"].items():
     # use agent's known traffic info
     G[edge[0]][edge[1]]["w"] = w
@@ -160,7 +160,7 @@ def setupGraph():
   else:
     if simConf.get("numberOfNodes"):
       #graph = nx.fast_gnp_random_graph(simConf["numberOfNodes"], 0.02, seed=simConf["randomSeed"], directed=False)
-      graph = nx.barabasi_albert_graph(simConf["numberOfNodes"], 1, simConf["randomSeed"])
+      graph = nx.barabasi_albert_graph(simConf["numberOfNodes"], 2, simConf["randomSeed"])
       graph.remove_nodes_from(list(nx.isolates(graph))) # remove isolates
       connected_components = list(nx.connected_components(graph))
       if len(connected_components) > 1:
@@ -170,7 +170,7 @@ def setupGraph():
     elif simConf.get("gridDim"):
       graph = nx.grid_graph(dim=simConf["gridDim"])
     for (_,_,data) in graph.edges(data=True):
-      data["length"] = random.randint(1,3)
+      data["length"] = random.randint(1,6)
       data["quality"] = random.randint(1,3)
       data["traffic"] = 0
       if random.random() < simConf["pBridge"]:
@@ -256,6 +256,7 @@ if __name__ == "__main__":
   createAgents(G, simConf["initialAgents"])
   traces = dict([(key, []) for key in env.agents])
   roadUsedCounter = Counter()
+  trafficData = defaultdict(int)
 
   # run simulation
   for step in range(simConf["steps"]):
@@ -304,9 +305,9 @@ if __name__ == "__main__":
   removeEdges = [e for e in A.edges() if e not in duplEdges]
   for edge in removeEdges:
     A.remove_edge(edge)
-  # A.graph_attr.update(nodesep=1)
-  A.node_attr.update(shape="box", color="blue")
-  A.edge_attr.update(dir="none", labeldistance=1.5)
+  A.graph_attr.update(nodesep=1, ranksep=1)
+  A.node_attr.update(shape="circle", color="blue", fixedsize="shape")
+  A.edge_attr.update(dir="none", labeldistance=2, decorate=True, labelfontsize=8)
   for e in A.edges():
     if e.attr.get("bridge") != "None":
       e.attr["style"] = "dashed,bold"
