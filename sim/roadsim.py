@@ -22,7 +22,8 @@ simConf = {
   "pBridge" : 0.15,
   "randomSeed" : 17,
   "graph" : None,
-  "agents" : None
+  "agents" : None,
+  "trafficImpact" : 0.8
 }
 
 # setup pyson
@@ -87,8 +88,8 @@ def takeRoad(self, term, intention):
   yield
 
 def calculateRoadProgress(traffic):
-  minProgress = 0.2
-  return minProgress + ((1 - minProgress) / (traffic + 1))
+  minProgress = 1 - trafficImpact
+  return minProgress + (trafficImpact / (traffic + 1))
 
 @actions.add(".bridgeStatus", 3)
 def bridgeStatus(self, term, intention):
