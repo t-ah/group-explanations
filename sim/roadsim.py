@@ -121,9 +121,9 @@ def getTraffic(self, term, intention):
   state = agentStates[self.name]
   resetWeights()
   for edge in G.edges(position):
-    edgeData = G[edge[0]][edge[1]]
     # update information for all incident roads
-    state["traffic"][edge] = edgeData["length"] / calculateRoadProgress(trafficData[(position, edge[1])])
+    state["traffic"][edge] = G[edge[0]][edge[1]]["length"] / calculateRoadProgress(trafficData[(edge[0], edge[1])])
+    state["traffic"][(edge[1], edge[0])] = G[edge[1]][edge[0]]["length"] / calculateRoadProgress(trafficData[(edge[1], edge[0])])
   for edge, w in state["traffic"].items():
     # use agent's known traffic info
     G[edge[0]][edge[1]]["w"] = w
@@ -135,6 +135,7 @@ def getTraffic(self, term, intention):
 def logStep(self, term, intention):
   content = pyson.grounded(term.args[0], intention.scope)
   traces[self.name].append(content)
+  print(content)
   yield
 
 def addBelief(ag, belief):
@@ -216,11 +217,11 @@ def createAgents(G, number):
         beliefs.append(pyson.Literal("node", (node, )))
       for node1, node2, data in G.edges(data=True):
         beliefs.append(pyson.Literal("edge", (node1, node2, data["length"], data["quality"])))
-        beliefs.append(pyson.Literal("edge", (node2, node1, data["length"], data["quality"])))
+        # beliefs.append(pyson.Literal("edge", (node2, node1, data["length"], data["quality"])))
       for (n1, n2, data) in G.edges(data=True):
         if data["bridge"]:
           beliefs.append(pyson.Literal("bridge", (n1, n2)))
-          beliefs.append(pyson.Literal("bridge", (n2, n1)))
+          # beliefs.append(pyson.Literal("bridge", (n2, n1)))
       for belief in beliefs:
         addBelief(agent, belief)
 
