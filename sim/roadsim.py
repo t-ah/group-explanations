@@ -159,7 +159,7 @@ def setupGraph():
       if edge.get("bridge"): bridges.append(edge["bridge"])
   else:
     if simConf.get("numberOfNodes"):
-      graph = nx.fast_gnp_random_graph(simConf["numberOfNodes"], 0.2, seed=simConf["randomSeed"], directed=False)
+      graph = nx.fast_gnp_random_graph(simConf["numberOfNodes"], 0.05, seed=simConf["randomSeed"], directed=False)
       graph.remove_nodes_from(list(nx.isolates(graph)))
     elif simConf.get("gridDim"):
       graph = nx.grid_graph(dim=simConf["gridDim"])
