@@ -23,7 +23,8 @@ simConf = {
   "randomSeed" : 17,
   "graph" : None,
   "agents" : None,
-  "trafficImpact" : 0.8
+  "trafficImpact" : 0.8,
+  "roadLength" : [1,3]
 }
 
 # setup pyson
@@ -171,7 +172,8 @@ def setupGraph():
     elif simConf.get("gridDim"):
       graph = nx.grid_graph(dim=simConf["gridDim"])
     for (_,_,data) in graph.edges(data=True):
-      data["length"] = random.randint(1,6)
+      lengths = tuple(simConf["roadLength"])
+      data["length"] = random.randint(*lengths)
       data["quality"] = random.randint(1,3)
       data["traffic"] = 0
       if random.random() < simConf["pBridge"]:
