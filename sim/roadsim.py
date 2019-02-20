@@ -162,7 +162,8 @@ def setupGraph():
   else:
     if simConf.get("numberOfNodes"):
       #graph = nx.fast_gnp_random_graph(simConf["numberOfNodes"], 0.02, seed=simConf["randomSeed"], directed=False)
-      graph = nx.barabasi_albert_graph(simConf["numberOfNodes"], 2, simConf["randomSeed"])
+      #graph = nx.barabasi_albert_graph(simConf["numberOfNodes"], 2, simConf["randomSeed"])
+      graph = nx.watts_strogatz_graph(simConf["numberOfNodes"], 4, .3, simConf["randomSeed"])
       graph.remove_nodes_from(list(nx.isolates(graph))) # remove isolates
       connected_components = list(nx.connected_components(graph))
       if len(connected_components) > 1:
@@ -180,11 +181,12 @@ def setupGraph():
         data["bridge"] = {
           "open": True,
           "pOpen": 0.1,
-          "pClose": 0.1
+          "pClose": 0.3
         }
         bridges.append(data["bridge"])
       else:
         data["bridge"] = None
+  graph = nx.DiGraph(graph)
   return (bridges, graph)
 
 def createAgents(G, number):
@@ -303,9 +305,12 @@ if __name__ == "__main__":
   if not os.path.exists("out"): os.makedirs("out")
   cTime = time.time()
   A = nx.nx_agraph.to_agraph(G)
-  duplEdges = A.edges()
-  A = A.to_directed()
-  removeEdges = [e for e in A.edges() if e not in duplEdges]
+  removeEdges = set()
+  for edge in A.edges():
+    if edge not in removeEdges: removeEdges.add((edge[1], edge[0]))
+  #duplEdges = A.edges()
+  #A = A.to_directed()
+  #removeEdges = [e for e in A.edges() if e not in duplEdges]
   for edge in removeEdges:
     A.remove_edge(edge)
   A.graph_attr.update(nodesep=1, ranksep=1)
