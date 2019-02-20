@@ -133,6 +133,7 @@ def getTraffic(self, term, intention):
 def logStep(self, term, intention):
   content = pyson.grounded(term.args[0], intention.scope)
   traces[self.name].append(content)
+  print("{}: {}".format(self.name, content))
   yield
 
 def addBelief(ag, belief):

@@ -92,5 +92,10 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   .getDetour(To, Detour);
   .logStep(explain(useDetourAround(Pos, To)));
   Detour = [Next|More];
-  -+plannedRoute(More);
-  !goto(Next).
+  if (Next == To) {
+    .print("There is no detour, I have to use the bridge.");
+  }
+  else {
+    -+plannedRoute(More);
+    !goto(Next);
+  }.
