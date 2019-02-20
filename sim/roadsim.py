@@ -133,7 +133,6 @@ def getTraffic(self, term, intention):
 def logStep(self, term, intention):
   content = pyson.grounded(term.args[0], intention.scope)
   traces[self.name].append(content)
-  print("{}: {}".format(self.name, content))
   yield
 
 def addBelief(ag, belief):
@@ -160,10 +159,12 @@ def setupGraph():
       if edge.get("bridge"): bridges.append(edge["bridge"])
   else:
     if simConf.get("numberOfNodes"):
-      graph = nx.fast_gnp_random_graph(simConf["numberOfNodes"], 0.02, seed=simConf["randomSeed"], directed=False)
+      #graph = nx.fast_gnp_random_graph(simConf["numberOfNodes"], 0.02, seed=simConf["randomSeed"], directed=False)
+      graph = nx.barabasi_albert_graph(simConf["numberOfNodes"], 1, simConf["randomSeed"])
       graph.remove_nodes_from(list(nx.isolates(graph))) # remove isolates
       connected_components = list(nx.connected_components(graph))
       if len(connected_components) > 1:
+        print("Connecting connected components.")
         for i in range(len(connected_components) - 1):
           graph.add_edge(connected_components[i].pop(), connected_components[i + 1].pop())
     elif simConf.get("gridDim"):
@@ -303,7 +304,7 @@ if __name__ == "__main__":
   removeEdges = [e for e in A.edges() if e not in duplEdges]
   for edge in removeEdges:
     A.remove_edge(edge)
-  A.graph_attr.update(nodesep=1)
+  # A.graph_attr.update(nodesep=1)
   A.node_attr.update(shape="box", color="blue")
   A.edge_attr.update(dir="none", labeldistance=1.5)
   for e in A.edges():
