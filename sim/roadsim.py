@@ -160,8 +160,12 @@ def setupGraph():
       if edge.get("bridge"): bridges.append(edge["bridge"])
   else:
     if simConf.get("numberOfNodes"):
-      graph = nx.fast_gnp_random_graph(simConf["numberOfNodes"], 0.05, seed=simConf["randomSeed"], directed=False)
-      graph.remove_nodes_from(list(nx.isolates(graph)))
+      graph = nx.fast_gnp_random_graph(simConf["numberOfNodes"], 0.02, seed=simConf["randomSeed"], directed=False)
+      graph.remove_nodes_from(list(nx.isolates(graph))) # remove isolates
+      connected_components = list(nx.connected_components(graph))
+      if len(connected_components) > 1:
+        for i in range(len(connected_components) - 1):
+          graph.add_edge(connected_components[i].pop(), connected_components[i + 1].pop())
     elif simConf.get("gridDim"):
       graph = nx.grid_graph(dim=simConf["gridDim"])
     for (_,_,data) in graph.edges(data=True):
