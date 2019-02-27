@@ -58,17 +58,20 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
   else {
     .concat([road(R1, L1)], OtherRoads, BestRoads);
   }
-  if ((L1>=L2) & (T2>=T1)) {
+  if ((L1>=L2) & (T2>T1)) {
     .logStep(explain(would_prefer_due_to_traffic([Pos,R1],[Pos,R2])));
   }
-  if ((L2>=L1) & (T1>=T2)) {
+  if ((L2>=L1) & (T1>T2)) {
     .logStep(explain(would_prefer_due_to_traffic([Pos,R2],[Pos,R1])));
   }
-  if ((L1>=L2) & (T1>=T2)) {
+  if ((L1>L2) & (T1>=T2)) {
     .logStep(explain(would_prefer_due_to_route_length([Pos,R2],[Pos,R1])));
   }
-  if ((L2>=L1) & (T2>=T1)) {
+  if ((L2>L1) & (T2>=T1)) {
     .logStep(explain(would_prefer_due_to_route_length([Pos,R1],[Pos,R2])));
+  }
+  if ((L1==L2) & (T2==T1)) {
+    .logStep(explain(take_from_two_equivalent([Pos,R1],[Pos,R2])));
   }
   !checkTraffic(BestRoads).
 
