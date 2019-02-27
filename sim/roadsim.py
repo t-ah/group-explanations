@@ -135,7 +135,6 @@ def getTraffic(self, term, intention):
 def logStep(self, term, intention):
   content = pyson.grounded(term.args[0], intention.scope)
   traces[self.name].append(content)
-  print(content)
   yield
 
 def addBelief(ag, belief):
@@ -227,24 +226,34 @@ def createAgents(G, number):
 
 def aggregate(traces):
   roads = defaultdict(lambda: Counter())
+  factors_by_path = defaultdict(lambda: defaultdict(lambda: Counter()))
   functorFilter = set(["goto"])
   for ag in env.agents:
     factors = set()
+    path = tuple(agentStates[ag]["path"])
     for t in traces[ag]:
       if t.functor == "explain":
         for arg in t.args:
           if arg.functor not in functorFilter:
             factors.add(arg)
       elif t.functor == "action":
-        actionArgs = t.args[0]
-        road = roads[actionArgs.args[0], actionArgs.args[1]]
+        actionArgs = t.args[0].args
+        road = roads[actionArgs[0], actionArgs[1]]
+        by_path = factors_by_path[actionArgs[0], actionArgs[1]][path]
         for factor in factors:
           road[factor] += 1
+          by_path[factor] += 1
         # factors = set() # only take factors for one step into account
-  for road, factors in roads.items():
+  # for road, factors in roads.items():
+  #   print("\n\nFactors for {}:".format(road))
+  #   for (factor, count) in factors.most_common():
+  #     print("{} times {}".format(count, factor))
+  for road, paths in factors_by_path.items():
     print("\n\nFactors for {}:".format(road))
-    for (factor, count) in factors.most_common():
-      print("{} times {}".format(count, factor))
+    for path, factors in paths.items():
+      print("\nPath {}:".format(path))
+      for (factor, count) in factors.most_common():
+        print("{} times {}".format(count, factor))
 
 if __name__ == "__main__":
   # setup simulation
