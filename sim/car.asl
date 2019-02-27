@@ -90,7 +90,7 @@ satisfiesQuality(From, To) :- minRoadQuality(MinQ) & edge(From, To, _, RoadQ) & 
 +!useDetour([]) <- .print("There is no route to use.").
 +!useDetour(To) : position(Pos) <-
   .getDetour(To, Detour);
-  if (.member(To, Detour)) {
+  if (.member(Pos, Detour)) {
     //.print("There is no detour, I have to use the bridge.");
     .logStep(explain(cannotUseDetour(Pos, To)));
   }
