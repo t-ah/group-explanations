@@ -45,7 +45,7 @@
     },
     {
       "fromTo" : [3,5],
-      "length" : 2,
+      "length" : 1,
       "quality" : 3,
       "bridge" : {
         "open" : false,
